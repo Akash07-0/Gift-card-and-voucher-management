@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Secure Voucher System
 
 A Spring Boot full-stack backend project for secure voucher creation, redemption,
@@ -64,3 +65,6 @@ GET /api/redemptions/my-history
 
 Do not commit production JWT secrets or database passwords.
 Use environment variables in deployment.
+=======
+# Gift-card-and-voucher-management
+>>>>>>> c825b770069871bf1e39382d804e97f1492ef710
