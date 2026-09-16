@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vouchers")
 public class VoucherController {
+
     private final VoucherService voucherService;
 
     public VoucherController(VoucherService voucherService) {
@@ -22,11 +23,11 @@ public class VoucherController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VoucherResponse> create(
-        @Valid @RequestBody VoucherRequest request,
-        Authentication authentication
+            @Valid @RequestBody VoucherRequest request,
+            Authentication authentication
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(voucherService.create(request, authentication.getName()));
+                .body(voucherService.create(request, authentication.getName()));
     }
 
     @GetMapping
@@ -44,8 +45,8 @@ public class VoucherController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VoucherResponse> update(
-        @PathVariable Long id,
-        @Valid @RequestBody VoucherRequest request
+            @PathVariable Long id,
+            @Valid @RequestBody VoucherRequest request
     ) {
         return ResponseEntity.ok(voucherService.update(id, request));
     }
