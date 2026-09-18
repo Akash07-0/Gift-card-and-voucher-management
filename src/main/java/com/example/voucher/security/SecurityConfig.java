@@ -3,9 +3,13 @@ package com.example.voucher.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -20,13 +24,34 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            UserDetailsService userDetailsService) {
+
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    public AuthenticationProvider authenticationProvider() {
+
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+
+        provider.setUserDetailsService(userDetailsService);
+
+        provider.setPasswordEncoder(
+                new BCryptPasswordEncoder()
+        );
+
+        return provider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http)
             throws Exception {
 
         http
@@ -40,56 +65,70 @@ public class SecurityConfig {
                 )
             )
 
+            .authenticationProvider(authenticationProvider())
+
             .authorizeHttpRequests(auth -> auth
 
+                .requestMatchers("/api/auth/**")
+                .permitAll()
+
                 .requestMatchers(
-                    "/api/auth/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
-                ).permitAll()
+                )
+                .permitAll()
 
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/vouchers"
-                ).hasRole("ADMIN")
+                )
+                .hasRole("ADMIN")
 
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/vouchers"
-                ).hasRole("ADMIN")
+                )
+                .hasRole("ADMIN")
 
                 .requestMatchers(
                     HttpMethod.PUT,
                     "/api/vouchers/**"
-                ).hasRole("ADMIN")
+                )
+                .hasRole("ADMIN")
 
                 .requestMatchers(
                     HttpMethod.DELETE,
                     "/api/vouchers/**"
-                ).hasRole("ADMIN")
+                )
+                .hasRole("ADMIN")
 
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/vouchers/available"
-                ).hasAnyRole("ADMIN", "CUSTOMER")
+                )
+                .hasAnyRole("ADMIN", "CUSTOMER")
 
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/redemptions"
-                ).hasRole("CUSTOMER")
+                )
+                .hasRole("CUSTOMER")
 
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/redemptions/my-history"
-                ).hasRole("CUSTOMER")
+                )
+                .hasRole("CUSTOMER")
 
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/redemptions"
-                ).hasRole("ADMIN")
+                )
+                .hasRole("ADMIN")
 
-                .anyRequest().authenticated()
+                .anyRequest()
+                .authenticated()
             )
 
             .addFilterBefore(
@@ -100,12 +139,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration =
-            new CorsConfiguration();
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
             List.of(
@@ -131,11 +169,11 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
+                new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration(
-            "/**",
-            configuration
+                "/**",
+                configuration
         );
 
         return source;

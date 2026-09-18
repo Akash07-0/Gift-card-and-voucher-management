@@ -565,6 +565,22 @@
                         </div>
 
 
+                        <div class="input-group">
+
+                            <label>
+                                Description
+                            </label>
+
+                            <input
+                                type="text"
+                                id="voucherDescription"
+                                placeholder="Enter voucher description"
+                                required
+                            >
+
+                        </div>
+
+
                         <div class="full">
 
                             <button
@@ -1216,7 +1232,11 @@
 
                             expiryDate: expiryDate,
 
-                            maxUsage: maxUsage
+                            maxUsage: maxUsage,
+
+                            description: document.getElementById(
+                                "voucherDescription"
+                            ).value.trim()
 
                         })
                     }
@@ -1685,7 +1705,7 @@
 
                     body: JSON.stringify({
 
-                        voucherCode: code
+                        Code: code
 
                     })
                 }
@@ -1968,5 +1988,4 @@
 
 </script>
 
-</body>
-</html>
+</bo
