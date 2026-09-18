@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 # Secure Voucher System
 
-A Spring Boot full-stack backend project for secure voucher creation, redemption,
-duplicate prevention, usage tracking, JWT authentication and role-based access.
+A full-stack voucher management system built with Spring Boot, MySQL, JWT authentication, and HTML/CSS/JavaScript.
 
 ## Features
 
@@ -10,61 +8,88 @@ duplicate prevention, usage tracking, JWT authentication and role-based access.
 - Admin login
 - BCrypt password hashing
 - JWT authentication
-- ADMIN / CUSTOMER roles
-- Admin voucher CRUD
-- Voucher expiry and activation checks
+- ADMIN / CUSTOMER role-based authorization
+- Admin voucher creation
+- Voucher update and deactivation
+- Voucher expiry validation
 - Maximum usage limit
 - Duplicate redemption prevention
-- Redemption history
-- MySQL persistence
+- Customer redemption history
+- Admin redemption history
+- MySQL database persistence
 - Bean validation
 - Global exception handling
-- Swagger UI
-- JUnit/Mockito test
+- Swagger / OpenAPI documentation
 
-## Default Admin
+## Technology Stack
 
-Email: admin@voucher.com
-Password: Admin@123
+### Backend
 
-Change this password for real deployment.
+- Java 17
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- Hibernate
+- MySQL
+- JWT
+- Maven
 
-## Run locally
+### Frontend
 
-1. Install Java 17+ and Maven.
-2. Start MySQL.
-3. The application uses:
-   - database: voucher_db
-   - username: root
-   - password: root
-4. Run:
+- HTML
+- CSS
+- JavaScript
 
-mvn spring-boot:run
+## Main API Flow
 
-Swagger:
-http://localhost:8080/swagger-ui.html
-
-## Main API flow
+### Authentication
 
 POST /api/auth/register
+
 POST /api/auth/login
 
-ADMIN:
+### Admin
+
 POST /api/vouchers
+
 GET /api/vouchers
+
 PUT /api/vouchers/{id}
+
 DELETE /api/vouchers/{id}
+
 GET /api/redemptions
 
-CUSTOMER:
+### Customer
+
 GET /api/vouchers/available
+
 POST /api/redemptions
+
 GET /api/redemptions/my-history
 
-## Important security note
+## Security
 
-Do not commit production JWT secrets or database passwords.
-Use environment variables in deployment.
-=======
-# Gift-card-and-voucher-management
->>>>>>> c825b770069871bf1e39382d804e97f1492ef710
+The application uses:
+
+- JWT authentication
+- Role-based authorization
+- BCrypt password hashing
+- Voucher expiry validation
+- Maximum usage validation
+- Duplicate redemption prevention
+
+Production secrets such as JWT secrets and database passwords should be provided through environment variables and should not be committed to GitHub.
+
+## Running Locally
+
+### Requirements
+
+- Java 17+
+- Maven
+- MySQL 8+
+
+### Backend
+
+```bash
+mvn spring-boot:run
