@@ -1,6 +1,7 @@
 package com.example.voucher.controller;
 
 import com.example.voucher.dto.GiftCardRedeemRequest;
+import com.example.voucher.dto.GiftCardRedemptionResponse;
 import com.example.voucher.dto.GiftCardRequest;
 import com.example.voucher.dto.GiftCardResponse;
 import com.example.voucher.service.GiftCardService;
@@ -57,11 +58,26 @@ public class GiftCardController {
     @PostMapping("/redeem")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<GiftCardResponse> redeem(
-            @Valid @RequestBody GiftCardRedeemRequest request) {
+            @Valid @RequestBody GiftCardRedeemRequest request,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                giftCardService.redeem(request)
+                giftCardService.redeem(request, authentication.getName())
         );
+    }
+
+    @GetMapping("/my-history")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<GiftCardRedemptionResponse>> myHistory(
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                giftCardService.myRedemptionHistory(authentication.getName()));
+    }
+
+    @GetMapping("/redemptions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<GiftCardRedemptionResponse>> allRedemptions() {
+        return ResponseEntity.ok(giftCardService.allRedemptions());
     }
 
     @DeleteMapping("/{id}")

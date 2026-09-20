@@ -1,13 +1,17 @@
 package com.example.voucher.service;
 
 import com.example.voucher.dto.GiftCardRedeemRequest;
+import com.example.voucher.dto.GiftCardRedemptionResponse;
 import com.example.voucher.dto.GiftCardRequest;
 import com.example.voucher.dto.GiftCardResponse;
 import com.example.voucher.entity.GiftCard;
+import com.example.voucher.entity.GiftCardRedemption;
 import com.example.voucher.entity.User;
 import com.example.voucher.repository.GiftCardRepository;
+import com.example.voucher.repository.GiftCardRedemptionRepository;
 import com.example.voucher.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,14 +19,17 @@ import java.util.List;
 @Service
 public class GiftCardService {
 
-    private final GiftCardRepository giftCardRepository;
+        private final GiftCardRepository giftCardRepository;
+        private final GiftCardRedemptionRepository giftCardRedemptionRepository;
     private final UserRepository userRepository;
 
     public GiftCardService(
             GiftCardRepository giftCardRepository,
+            GiftCardRedemptionRepository giftCardRedemptionRepository,
             UserRepository userRepository) {
 
         this.giftCardRepository = giftCardRepository;
+        this.giftCardRedemptionRepository = giftCardRedemptionRepository;
         this.userRepository = userRepository;
     }
 
@@ -88,8 +95,10 @@ public class GiftCardService {
         giftCardRepository.save(giftCard);
     }
 
+    @Transactional
     public GiftCardResponse redeem(
-            GiftCardRedeemRequest request) {
+            GiftCardRedeemRequest request,
+            String customerEmail) {
 
         GiftCard giftCard = giftCardRepository
                 .findByCode(request.code())
@@ -118,7 +127,35 @@ public class GiftCardService {
                 giftCard.getBalance() - request.amount()
         );
 
+        User customer = userRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        giftCardRedemptionRepository.save(
+                new GiftCardRedemption(
+                        giftCard,
+                        customer,
+                        request.amount(),
+                        java.time.LocalDateTime.now()));
+
         return GiftCardResponse.from(
                 giftCardRepository.save(giftCard));
+    }
+
+    public List<GiftCardRedemptionResponse> myRedemptionHistory(String customerEmail) {
+        User customer = userRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return giftCardRedemptionRepository
+                .findByUserIdOrderByRedeemedAtDesc(customer.getId())
+                .stream()
+                .map(GiftCardRedemptionResponse::from)
+                .toList();
+    }
+
+    public List<GiftCardRedemptionResponse> allRedemptions() {
+        return giftCardRedemptionRepository.findAllByOrderByRedeemedAtDesc()
+                .stream()
+                .map(GiftCardRedemptionResponse::from)
+                .toList();
     }
 }
