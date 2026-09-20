@@ -1,0 +1,45 @@
+Table User {
+  id bigint [pk]
+  name varchar
+  email varchar [unique]
+  password varchar
+  role Role
+}
+
+Table Voucher {
+  id bigint [pk]
+  code varchar [unique]
+  description varchar
+  discount double
+  expiryDate date
+  maxUsage int
+  currentUsage int
+  active boolean
+  createdBy bigint [ref: > User.id]
+}
+
+Table GiftCard {
+  id bigint [pk]
+  code varchar [unique]
+  amount double
+  balance double
+  expiryDate date
+  active boolean
+  createdBy bigint [ref: > User.id]
+}
+
+Table Redemption {
+  id bigint [pk]
+  userId bigint [ref: > User.id]
+  voucherId bigint [ref: > Voucher.id]
+  redeemedAt datetime
+  status varchar
+}
+
+Table GiftCardRedemption {
+  id bigint [pk]
+  giftCardId bigint [ref: > GiftCard.id]
+  userId bigint [ref: > User.id]
+  amount double
+  redeemedAt datetime
+}

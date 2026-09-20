@@ -327,59 +327,39 @@ Install the following:
 * MySQL 8
 * Git
 
-### Clone Repository
+### Clone and Build
 
 ```bash
-git clone https://github.com/Akash07-0/Gift-card-and-voucher-management.git
+git clone <repository-url>
+cd secure-voucher-system
+mvn clean test
+mvn clean package -DskipTests
 ```
 
-### Navigate to Project
+### Local Environment
 
-```bash
-cd Gift-card-and-voucher-management
-```
+Spring Boot reads database and JWT settings from environment variables. A root `.env` file is not loaded automatically. In PowerShell:
 
-### Configure Database
-
-Update the database configuration in:
-
-```text
-src/main/resources/application.properties
-```
-
-Use your own MySQL username, password, database name, and JWT secret.
-
-### Start Backend
-
-```bash
+```powershell
+$env:DB_URL = "jdbc:mysql://localhost:3306/voucher_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = "<your-local-mysql-password>"
+$env:JWT_SECRET = "<long-random-secret>"
+$env:FRONTEND_URL = "http://localhost:5173"
 mvn spring-boot:run
 ```
 
-The backend runs on:
+The backend runs at `http://localhost:8080` locally unless `PORT` is set. Health is available at `http://localhost:8080/health` and Swagger at `http://localhost:8080/swagger-ui/index.html`.
 
-```text
-http://localhost:8080
+### Start React Frontend Locally
+
+```powershell
+cd frontend
+npm install
+npm run dev
 ```
 
-### Start Frontend
-
-Navigate to the frontend folder and start the frontend server according to the project setup.
-
-The frontend is available at:
-
-```text
-http://127.0.0.1:5500
-```
-
-## Swagger Documentation
-
-After starting the Spring Boot application, open:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-Swagger can be used to test and explore the REST APIs.
+The Vite frontend uses `VITE_API_URL`. For local development, use `http://localhost:8080/api` or leave it unset to use the Vite `/api` proxy.
 
 ## Application Workflow
 
@@ -406,23 +386,64 @@ Swagger can be used to test and explore the REST APIs.
                     MySQL Database
 ```
 
-## Security Best Practices
+## Render and Railway Deployment
 
-Production secrets should never be committed to GitHub.
-
-The following should be stored securely using environment variables or a secret-management system:
-
-* Database passwords
-* JWT secret keys
-* Other sensitive configuration values
-
-Example:
+Deployment architecture:
 
 ```text
-DB_USERNAME
-DB_PASSWORD
-JWT_SECRET
+React + Vite (Render) -> HTTPS REST API -> Spring Boot (Render) -> MySQL (Railway)
 ```
+
+### Railway MySQL
+
+1. Create a MySQL service in Railway.
+2. Copy its host, port, database name, username, and password into a JDBC URL.
+3. In the Render backend environment, map the values to:
+
+```text
+DB_URL=jdbc:mysql://<railway-host>:<railway-port>/<railway-database>?useSSL=true&serverTimezone=UTC
+DB_USERNAME=<railway-username>
+DB_PASSWORD=<railway-password>
+JWT_SECRET=<long-random-secret>
+FRONTEND_URL=https://<frontend-name>.onrender.com
+```
+
+If Railway provides a `MYSQL_URL` or another connection variable, copy its host, port, and database values into the `DB_URL` JDBC format above. Do not place the Railway URL or credentials in Git. The application keeps `spring.jpa.hibernate.ddl-auto=update` so Hibernate can create or update the five application tables without destructive SQL.
+
+### Render Backend
+
+Create a Render Web Service using the repository root:
+
+```text
+Build Command: mvn clean package -DskipTests
+Start Command: java -jar target/secure-voucher-system-0.0.1-SNAPSHOT.jar
+Health Check Path: /health
+```
+
+Render supplies `PORT`; Spring Boot uses `server.port=${PORT:8080}`. Add `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, and `FRONTEND_URL` in the Render environment settings. Do not add them to workflow files or committed configuration.
+
+### Render Frontend
+
+Create a separate Render Static Site using the `frontend` directory:
+
+```text
+Build Command: npm install && npm run build
+Publish Directory: dist
+```
+
+Set this public environment variable in Render:
+
+```text
+VITE_API_URL=https://<backend-name>.onrender.com/api
+```
+
+Only the public API URL belongs in the frontend environment. Never expose `JWT_SECRET`, database credentials, or other backend secrets to Vite.
+
+After the frontend deploys, update the backend `FRONTEND_URL` to the actual frontend Render URL and redeploy the backend. Test `/health`, customer registration/login, admin login, voucher operations, gift-card operations, and both gift-card history endpoints.
+
+## Security Best Practices
+
+Production secrets must remain in Render/Railway environment settings or a secret manager. The tracked `.env.example` files contain placeholders only. The React build receives only `VITE_API_URL`.
 
 ## Future Enhancements
 
