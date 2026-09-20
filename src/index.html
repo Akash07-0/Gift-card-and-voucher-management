@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -348,7 +349,9 @@
 <body>
 
 <div id="loginPage">
+
     <div class="login-box">
+
         <h1>Secure Voucher</h1>
 
         <p class="login-subtitle">
@@ -356,24 +359,35 @@
         </p>
 
         <form id="loginForm">
+
             <div class="form-group">
-                <label for="email">Email</label>
+
+                <label for="email">
+                    Email
+                </label>
+
                 <input
                     type="email"
                     id="email"
                     placeholder="Enter email"
                     required
                 >
+
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
+
+                <label for="password">
+                    Password
+                </label>
+
                 <input
                     type="password"
                     id="password"
                     placeholder="Enter password"
                     required
                 >
+
             </div>
 
             <button
@@ -382,20 +396,26 @@
             >
                 Login
             </button>
+
         </form>
 
         <div id="loginMessage"></div>
+
     </div>
+
 </div>
+
 
 <div id="dashboardPage">
 
     <div class="navbar">
+
         <h2>
             Secure Voucher System
         </h2>
 
         <div class="nav-right">
+
             <span
                 id="userRole"
                 class="role-badge"
@@ -409,25 +429,38 @@
             >
                 Logout
             </button>
+
         </div>
+
     </div>
+
 
     <div class="container">
 
         <div class="welcome">
+
             <h1 id="welcomeText">
                 Welcome
             </h1>
 
             <p>
-                Manage and redeem secure vouchers.
+                Manage and redeem secure vouchers and gift cards.
             </p>
+
         </div>
+
+
+        <!-- =====================================================
+             ADMIN DASHBOARD
+        ====================================================== -->
 
         <div
             id="adminDashboard"
             style="display:none;"
         >
+
+
+            <!-- CREATE VOUCHER -->
 
             <div class="card">
 
@@ -440,6 +473,7 @@
                     <div class="form-grid">
 
                         <div class="input-group">
+
                             <label>
                                 Voucher Code
                             </label>
@@ -450,9 +484,12 @@
                                 placeholder="Example: SAVE100"
                                 required
                             >
+
                         </div>
 
+
                         <div class="input-group">
+
                             <label>
                                 Discount
                             </label>
@@ -463,9 +500,12 @@
                                 placeholder="Example: 100"
                                 required
                             >
+
                         </div>
 
+
                         <div class="input-group">
+
                             <label>
                                 Expiry Date
                             </label>
@@ -475,9 +515,12 @@
                                 id="expiryDate"
                                 required
                             >
+
                         </div>
 
+
                         <div class="input-group">
+
                             <label>
                                 Maximum Usage
                             </label>
@@ -489,9 +532,12 @@
                                 min="1"
                                 required
                             >
+
                         </div>
 
+
                         <div class="input-group">
+
                             <label>
                                 Description
                             </label>
@@ -502,22 +548,31 @@
                                 placeholder="Enter voucher description"
                                 required
                             >
+
                         </div>
 
+
                         <div class="full">
+
                             <button
                                 type="submit"
                                 class="primary-btn"
                             >
                                 Create Voucher
                             </button>
+
                         </div>
 
                     </div>
+
                 </form>
 
                 <div id="createVoucherMessage"></div>
+
             </div>
+
+
+            <!-- ALL VOUCHERS -->
 
             <div class="card">
 
@@ -539,7 +594,9 @@
                     <table>
 
                         <thead>
+
                             <tr>
+
                                 <th>ID</th>
                                 <th>Code</th>
                                 <th>Discount</th>
@@ -548,7 +605,9 @@
                                 <th>Current Usage</th>
                                 <th>Status</th>
                                 <th>Action</th>
+
                             </tr>
+
                         </thead>
 
                         <tbody id="adminVoucherTable"></tbody>
@@ -558,7 +617,141 @@
                 </div>
 
                 <div id="adminVoucherMessage"></div>
+
             </div>
+
+
+            <!-- =================================================
+                 CREATE GIFT CARD
+            ================================================== -->
+
+            <div class="card">
+
+                <h2>
+                    Create Gift Card
+                </h2>
+
+                <form id="createGiftCardForm">
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+
+                            <label>
+                                Gift Card Code
+                            </label>
+
+                            <input
+                                type="text"
+                                id="giftCardCode"
+                                placeholder="Example: GC1000"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                id="giftCardAmount"
+                                placeholder="Example: 1000"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>
+                                Expiry Date
+                            </label>
+
+                            <input
+                                type="date"
+                                id="giftCardExpiry"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="full">
+
+                            <button
+                                type="submit"
+                                class="primary-btn"
+                            >
+                                Create Gift Card
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <div id="createGiftCardMessage"></div>
+
+            </div>
+
+
+            <!-- ALL GIFT CARDS -->
+
+            <div class="card">
+
+                <h2>
+                    All Gift Cards
+                </h2>
+
+                <button
+                    class="primary-btn"
+                    onclick="loadAdminGiftCards()"
+                >
+                    Refresh Gift Cards
+                </button>
+
+                <br><br>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+                                <th>Code</th>
+                                <th>Amount</th>
+                                <th>Balance</th>
+                                <th>Expiry</th>
+                                <th>Status</th>
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="adminGiftCardTable"></tbody>
+
+                    </table>
+
+                </div>
+
+                <div id="adminGiftCardMessage"></div>
+
+            </div>
+
+
+            <!-- ALL REDEMPTION HISTORY -->
 
             <div class="card">
 
@@ -580,12 +773,16 @@
                     <table>
 
                         <thead>
+
                             <tr>
+
                                 <th>ID</th>
                                 <th>Voucher</th>
                                 <th>User</th>
                                 <th>Redeemed At</th>
+
                             </tr>
+
                         </thead>
 
                         <tbody id="adminRedemptionTable"></tbody>
@@ -595,14 +792,23 @@
                 </div>
 
                 <div id="adminRedemptionMessage"></div>
+
             </div>
 
         </div>
+
+
+        <!-- =====================================================
+             CUSTOMER DASHBOARD
+        ====================================================== -->
 
         <div
             id="customerDashboard"
             style="display:none;"
         >
+
+
+            <!-- AVAILABLE VOUCHERS -->
 
             <div class="card">
 
@@ -625,7 +831,38 @@
                 ></div>
 
                 <div id="availableVoucherMessage"></div>
+
             </div>
+
+
+            <!-- AVAILABLE GIFT CARDS -->
+
+            <div class="card">
+
+                <h2>
+                    Available Gift Cards
+                </h2>
+
+                <button
+                    class="primary-btn"
+                    onclick="loadAvailableGiftCards()"
+                >
+                    Refresh Gift Cards
+                </button>
+
+                <br><br>
+
+                <div
+                    id="availableGiftCardGrid"
+                    class="voucher-grid"
+                ></div>
+
+                <div id="availableGiftCardMessage"></div>
+
+            </div>
+
+
+            <!-- MY REDEMPTION HISTORY -->
 
             <div class="card">
 
@@ -647,11 +884,15 @@
                     <table>
 
                         <thead>
+
                             <tr>
+
                                 <th>ID</th>
                                 <th>Voucher</th>
                                 <th>Redeemed At</th>
+
                             </tr>
+
                         </thead>
 
                         <tbody id="myHistoryTable"></tbody>
@@ -661,16 +902,20 @@
                 </div>
 
                 <div id="myHistoryMessage"></div>
+
             </div>
 
         </div>
 
     </div>
+
 </div>
+
 
 <script>
 
 const API = "http://localhost:8080";
+
 
 const loginPage =
     document.getElementById("loginPage");
@@ -686,7 +931,9 @@ const loginMessage =
 
 
 function getToken() {
+
     return localStorage.getItem("token");
+
 }
 
 
@@ -695,14 +942,21 @@ async function apiRequest(url, options = {}) {
     const token = getToken();
 
     const headers = {
+
         "Content-Type": "application/json",
+
         ...(options.headers || {})
+
     };
 
+
     if (token) {
+
         headers["Authorization"] =
             "Bearer " + token;
+
     }
+
 
     try {
 
@@ -715,37 +969,57 @@ async function apiRequest(url, options = {}) {
                 }
             );
 
+
         let data = null;
 
+
         try {
+
             data = await response.json();
+
         } catch (e) {
+
             data = null;
+
         }
+
 
         if (!response.ok) {
 
             let message =
                 "Request failed";
 
+
             if (data) {
 
                 if (typeof data === "string") {
+
                     message = data;
+
                 } else if (data.error) {
+
                     message = data.error;
+
                 } else if (data.message) {
+
                     message = data.message;
+
                 } else if (data.errorMessage) {
+
                     message = data.errorMessage;
+
                 }
 
             }
 
+
             throw new Error(message);
+
         }
 
+
         return data;
+
 
     } catch (error) {
 
@@ -757,12 +1031,20 @@ async function apiRequest(url, options = {}) {
             throw new Error(
                 "Cannot connect to backend. Make sure Spring Boot is running on port 8080 and CORS is configured."
             );
+
         }
 
+
         throw error;
+
     }
+
 }
 
+
+/* =========================================================
+   LOGIN
+========================================================= */
 
 loginForm.addEventListener(
     "submit",
@@ -770,19 +1052,24 @@ loginForm.addEventListener(
 
         event.preventDefault();
 
+
         const email =
             document.getElementById("email")
                 .value.trim();
+
 
         const password =
             document.getElementById("password")
                 .value;
 
+
         loginMessage.textContent =
             "Logging in...";
 
+
         loginMessage.style.color =
             "#2563eb";
+
 
         try {
 
@@ -793,49 +1080,64 @@ loginForm.addEventListener(
                         method: "POST",
 
                         body: JSON.stringify({
+
                             email: email,
+
                             password: password
+
                         })
                     }
                 );
 
+
             const data =
                 result.data || result;
+
 
             if (!data.token) {
 
                 throw new Error(
                     "Login successful but JWT token was not received."
                 );
+
             }
+
 
             localStorage.setItem(
                 "token",
                 data.token
             );
 
+
             localStorage.setItem(
                 "role",
                 data.role
             );
+
 
             localStorage.setItem(
                 "email",
                 email
             );
 
+
             loginMessage.textContent =
                 "Login successful!";
+
 
             loginMessage.style.color =
                 "#15803d";
 
+
             setTimeout(
                 function() {
+
                     showDashboard(data.role);
+
                 },
                 500
             );
+
 
         } catch (error) {
 
@@ -844,28 +1146,38 @@ loginForm.addEventListener(
 
             loginMessage.style.color =
                 "#dc2626";
+
         }
+
     }
 );
 
+
+/* =========================================================
+   SHOW DASHBOARD
+========================================================= */
 
 function showDashboard(role) {
 
     loginPage.style.display =
         "none";
 
+
     dashboardPage.style.display =
         "block";
+
 
     document.getElementById(
         "userRole"
     ).textContent = role;
+
 
     document.getElementById(
         "welcomeText"
     ).textContent =
         "Welcome " +
         localStorage.getItem("email");
+
 
     if (role === "ADMIN") {
 
@@ -874,13 +1186,19 @@ function showDashboard(role) {
         ).style.display =
             "block";
 
+
         document.getElementById(
             "customerDashboard"
         ).style.display =
             "none";
 
+
         loadAdminVouchers();
+
+        loadAdminGiftCards();
+
         loadAllRedemptions();
+
 
     } else {
 
@@ -889,34 +1207,56 @@ function showDashboard(role) {
         ).style.display =
             "none";
 
+
         document.getElementById(
             "customerDashboard"
         ).style.display =
             "block";
 
+
         loadAvailableVouchers();
+
+        loadAvailableGiftCards();
+
         loadMyHistory();
+
     }
+
 }
 
+
+/* =========================================================
+   LOGOUT
+========================================================= */
 
 function logout() {
 
     localStorage.removeItem("token");
+
     localStorage.removeItem("role");
+
     localStorage.removeItem("email");
+
 
     dashboardPage.style.display =
         "none";
 
+
     loginPage.style.display =
         "flex";
 
+
     loginForm.reset();
 
+
     loginMessage.textContent = "";
+
 }
 
+
+/* =========================================================
+   CREATE VOUCHER
+========================================================= */
 
 document.getElementById(
     "createVoucherForm"
@@ -926,10 +1266,12 @@ document.getElementById(
 
         event.preventDefault();
 
+
         const code =
             document.getElementById(
                 "voucherCode"
             ).value.trim();
+
 
         const discount =
             Number(
@@ -938,10 +1280,12 @@ document.getElementById(
                 ).value
             );
 
+
         const expiryDate =
             document.getElementById(
                 "expiryDate"
             ).value;
+
 
         const maxUsage =
             Number(
@@ -950,21 +1294,26 @@ document.getElementById(
                 ).value
             );
 
+
         const description =
             document.getElementById(
                 "voucherDescription"
             ).value.trim();
+
 
         const message =
             document.getElementById(
                 "createVoucherMessage"
             );
 
+
         message.textContent =
             "Creating voucher...";
 
+
         message.className =
             "info-message";
+
 
         try {
 
@@ -989,17 +1338,22 @@ document.getElementById(
                 }
             );
 
+
             message.textContent =
                 "Voucher created successfully!";
 
+
             message.className =
                 "success-message";
+
 
             document.getElementById(
                 "createVoucherForm"
             ).reset();
 
+
             loadAdminVouchers();
+
 
         } catch (error) {
 
@@ -1008,10 +1362,16 @@ document.getElementById(
 
             message.className =
                 "error-message";
+
         }
+
     }
 );
 
+
+/* =========================================================
+   ADMIN - ALL VOUCHERS
+========================================================= */
 
 async function loadAdminVouchers() {
 
@@ -1020,13 +1380,16 @@ async function loadAdminVouchers() {
             "adminVoucherTable"
         );
 
+
     const message =
         document.getElementById(
             "adminVoucherMessage"
         );
 
+
     table.innerHTML =
         "<tr><td colspan='8'>Loading...</td></tr>";
+
 
     try {
 
@@ -1035,10 +1398,13 @@ async function loadAdminVouchers() {
                 "/api/vouchers"
             );
 
+
         const vouchers =
             result.data || result;
 
+
         table.innerHTML = "";
+
 
         if (
             !Array.isArray(vouchers) ||
@@ -1049,13 +1415,16 @@ async function loadAdminVouchers() {
                 "<tr><td colspan='8'>No vouchers found.</td></tr>";
 
             return;
+
         }
+
 
         vouchers.forEach(
             function(voucher) {
 
                 const row =
                     document.createElement("tr");
+
 
                 row.innerHTML = `
 
@@ -1088,11 +1457,13 @@ async function loadAdminVouchers() {
                             ? "active"
                             : "inactive"
                     }">
+
                         ${
                             voucher.active
                                 ? "ACTIVE"
                                 : "INACTIVE"
                         }
+
                     </td>
 
                     <td>
@@ -1114,26 +1485,33 @@ async function loadAdminVouchers() {
                     </td>
                 `;
 
+
                 table.appendChild(row);
+
             }
         );
+
 
     } catch (error) {
 
         table.innerHTML =
             "<tr><td colspan='8'>Failed to load vouchers.</td></tr>";
 
+
         message.textContent =
             error.message;
 
+
         message.className =
             "error-message";
+
     }
+
 }
 
 
 /* =========================================================
-   FIXED UPDATE VOUCHER
+   UPDATE VOUCHER
 ========================================================= */
 
 async function updateVoucher(id) {
@@ -1141,41 +1519,61 @@ async function updateVoucher(id) {
     const code =
         prompt("Enter voucher code:");
 
+
     if (code === null) {
+
         return;
+
     }
+
 
     const discount =
         prompt("Enter new discount:");
 
+
     if (discount === null) {
+
         return;
+
     }
+
 
     const expiryDate =
         prompt(
             "Enter new expiry date (YYYY-MM-DD):"
         );
 
+
     if (expiryDate === null) {
+
         return;
+
     }
+
 
     const maxUsage =
         prompt("Enter new maximum usage:");
 
+
     if (maxUsage === null) {
+
         return;
+
     }
+
 
     const description =
         prompt(
             "Enter voucher description:"
         );
 
+
     if (description === null) {
+
         return;
+
     }
+
 
     try {
 
@@ -1204,16 +1602,21 @@ async function updateVoucher(id) {
             }
         );
 
+
         alert(
             "Voucher updated successfully!"
         );
 
+
         loadAdminVouchers();
+
 
     } catch (error) {
 
         alert(error.message);
+
     }
+
 }
 
 
@@ -1228,9 +1631,13 @@ async function deactivateVoucher(id) {
             "Are you sure you want to deactivate this voucher?"
         );
 
+
     if (!confirmDelete) {
+
         return;
+
     }
+
 
     try {
 
@@ -1241,16 +1648,21 @@ async function deactivateVoucher(id) {
             }
         );
 
+
         alert(
             "Voucher deactivated successfully!"
         );
 
+
         loadAdminVouchers();
+
 
     } catch (error) {
 
         alert(error.message);
+
     }
+
 }
 
 
@@ -1265,13 +1677,16 @@ async function loadAvailableVouchers() {
             "availableVoucherGrid"
         );
 
+
     const message =
         document.getElementById(
             "availableVoucherMessage"
         );
 
+
     grid.innerHTML =
         "<p>Loading vouchers...</p>";
+
 
     try {
 
@@ -1280,10 +1695,13 @@ async function loadAvailableVouchers() {
                 "/api/vouchers/available"
             );
 
+
         const vouchers =
             result.data || result;
 
+
         grid.innerHTML = "";
+
 
         if (
             !Array.isArray(vouchers) ||
@@ -1294,7 +1712,9 @@ async function loadAvailableVouchers() {
                 "<p>No available vouchers.</p>";
 
             return;
+
         }
+
 
         vouchers.forEach(
             function(voucher) {
@@ -1302,8 +1722,10 @@ async function loadAvailableVouchers() {
                 const card =
                     document.createElement("div");
 
+
                 card.className =
                     "voucher-card";
+
 
                 card.innerHTML = `
 
@@ -1340,25 +1762,32 @@ async function loadAvailableVouchers() {
                     </button>
                 `;
 
+
                 grid.appendChild(card);
+
             }
         );
+
 
     } catch (error) {
 
         grid.innerHTML = "";
 
+
         message.textContent =
             error.message;
 
+
         message.className =
             "error-message";
+
     }
+
 }
 
 
 /* =========================================================
-   FIXED REDEEM VOUCHER
+   REDEEM VOUCHER
 ========================================================= */
 
 async function redeemVoucher(code) {
@@ -1370,9 +1799,13 @@ async function redeemVoucher(code) {
             "?"
         );
 
+
     if (!confirmRedeem) {
+
         return;
+
     }
+
 
     try {
 
@@ -1389,18 +1822,23 @@ async function redeemVoucher(code) {
             }
         );
 
+
         alert(
             "Voucher redeemed successfully!"
         );
+
 
         loadAvailableVouchers();
 
         loadMyHistory();
 
+
     } catch (error) {
 
         alert(error.message);
+
     }
+
 }
 
 
@@ -1415,13 +1853,16 @@ async function loadMyHistory() {
             "myHistoryTable"
         );
 
+
     const message =
         document.getElementById(
             "myHistoryMessage"
         );
 
+
     table.innerHTML =
         "<tr><td colspan='3'>Loading...</td></tr>";
+
 
     try {
 
@@ -1430,10 +1871,13 @@ async function loadMyHistory() {
                 "/api/redemptions/my-history"
             );
 
+
         const history =
             result.data || result;
 
+
         table.innerHTML = "";
+
 
         if (
             !Array.isArray(history) ||
@@ -1444,13 +1888,16 @@ async function loadMyHistory() {
                 "<tr><td colspan='3'>No redemption history.</td></tr>";
 
             return;
+
         }
+
 
         history.forEach(
             function(item) {
 
                 const row =
                     document.createElement("tr");
+
 
                 row.innerHTML = `
 
@@ -1473,23 +1920,31 @@ async function loadMyHistory() {
                             "-"
                         }
                     </td>
+
                 `;
 
+
                 table.appendChild(row);
+
             }
         );
+
 
     } catch (error) {
 
         table.innerHTML =
             "<tr><td colspan='3'>Failed to load history.</td></tr>";
 
+
         message.textContent =
             error.message;
 
+
         message.className =
             "error-message";
+
     }
+
 }
 
 
@@ -1504,13 +1959,16 @@ async function loadAllRedemptions() {
             "adminRedemptionTable"
         );
 
+
     const message =
         document.getElementById(
             "adminRedemptionMessage"
         );
 
+
     table.innerHTML =
         "<tr><td colspan='4'>Loading...</td></tr>";
+
 
     try {
 
@@ -1519,10 +1977,13 @@ async function loadAllRedemptions() {
                 "/api/redemptions"
             );
 
+
         const history =
             result.data || result;
 
+
         table.innerHTML = "";
+
 
         if (
             !Array.isArray(history) ||
@@ -1533,13 +1994,16 @@ async function loadAllRedemptions() {
                 "<tr><td colspan='4'>No redemption history.</td></tr>";
 
             return;
+
         }
+
 
         history.forEach(
             function(item) {
 
                 const row =
                     document.createElement("tr");
+
 
                 row.innerHTML = `
 
@@ -1571,23 +2035,529 @@ async function loadAllRedemptions() {
                             "-"
                         }
                     </td>
+
                 `;
 
+
                 table.appendChild(row);
+
             }
         );
+
 
     } catch (error) {
 
         table.innerHTML =
             "<tr><td colspan='4'>Failed to load history.</td></tr>";
 
+
         message.textContent =
             error.message;
 
+
         message.className =
             "error-message";
+
     }
+
+}
+
+
+/* =========================================================
+   ADMIN - CREATE GIFT CARD
+========================================================= */
+
+document.getElementById(
+    "createGiftCardForm"
+).addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        const code =
+            document.getElementById(
+                "giftCardCode"
+            ).value.trim();
+
+
+        const amount =
+            Number(
+                document.getElementById(
+                    "giftCardAmount"
+                ).value
+            );
+
+
+        const expiryDate =
+            document.getElementById(
+                "giftCardExpiry"
+            ).value;
+
+
+        const message =
+            document.getElementById(
+                "createGiftCardMessage"
+            );
+
+
+        message.textContent =
+            "Creating gift card...";
+
+
+        message.className =
+            "info-message";
+
+
+        try {
+
+            await apiRequest(
+                "/api/gift-cards",
+                {
+                    method: "POST",
+
+                    body: JSON.stringify({
+
+                        code: code,
+
+                        amount: amount,
+
+                        expiryDate: expiryDate
+
+                    })
+                }
+            );
+
+
+            message.textContent =
+                "Gift card created successfully!";
+
+
+            message.className =
+                "success-message";
+
+
+            document.getElementById(
+                "createGiftCardForm"
+            ).reset();
+
+
+            loadAdminGiftCards();
+
+
+        } catch (error) {
+
+            message.textContent =
+                error.message;
+
+
+            message.className =
+                "error-message";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN - ALL GIFT CARDS
+========================================================= */
+
+async function loadAdminGiftCards() {
+
+    const table =
+        document.getElementById(
+            "adminGiftCardTable"
+        );
+
+
+    const message =
+        document.getElementById(
+            "adminGiftCardMessage"
+        );
+
+
+    table.innerHTML =
+        "<tr><td colspan='7'>Loading...</td></tr>";
+
+
+    try {
+
+        const result =
+            await apiRequest(
+                "/api/gift-cards"
+            );
+
+
+        const cards =
+            result.data || result;
+
+
+        table.innerHTML = "";
+
+
+        if (
+            !Array.isArray(cards) ||
+            cards.length === 0
+        ) {
+
+            table.innerHTML =
+                "<tr><td colspan='7'>No gift cards found.</td></tr>";
+
+            return;
+
+        }
+
+
+        cards.forEach(
+            function(card) {
+
+                const row =
+                    document.createElement("tr");
+
+
+                row.innerHTML = `
+
+                    <td>
+                        ${card.id ?? "-"}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${card.code ?? "-"}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ₹${card.amount ?? "-"}
+                    </td>
+
+                    <td>
+                        ₹${card.balance ?? "-"}
+                    </td>
+
+                    <td>
+                        ${card.expiryDate ?? "-"}
+                    </td>
+
+                    <td class="${
+                        card.active
+                            ? "active"
+                            : "inactive"
+                    }">
+
+                        ${
+                            card.active
+                                ? "ACTIVE"
+                                : "INACTIVE"
+                        }
+
+                    </td>
+
+                    <td>
+
+                        ${
+                            card.active
+                                ? `
+                                    <button
+                                        class="action-btn delete-btn"
+                                        onclick="deactivateGiftCard(${card.id})"
+                                    >
+                                        Deactivate
+                                    </button>
+                                  `
+                                : "-"
+                        }
+
+                    </td>
+
+                `;
+
+
+                table.appendChild(row);
+
+            }
+        );
+
+
+    } catch (error) {
+
+        table.innerHTML =
+            "<tr><td colspan='7'>Failed to load gift cards.</td></tr>";
+
+
+        message.textContent =
+            error.message;
+
+
+        message.className =
+            "error-message";
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMIN - DEACTIVATE GIFT CARD
+========================================================= */
+
+async function deactivateGiftCard(id) {
+
+    const confirmDelete =
+        confirm(
+            "Are you sure you want to deactivate this gift card?"
+        );
+
+
+    if (!confirmDelete) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await apiRequest(
+            "/api/gift-cards/" + id,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        alert(
+            "Gift card deactivated successfully!"
+        );
+
+
+        loadAdminGiftCards();
+
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
+}
+
+
+/* =========================================================
+   CUSTOMER - AVAILABLE GIFT CARDS
+========================================================= */
+
+async function loadAvailableGiftCards() {
+
+    const grid =
+        document.getElementById(
+            "availableGiftCardGrid"
+        );
+
+
+    const message =
+        document.getElementById(
+            "availableGiftCardMessage"
+        );
+
+
+    grid.innerHTML =
+        "<p>Loading gift cards...</p>";
+
+
+    try {
+
+        const result =
+            await apiRequest(
+                "/api/gift-cards/available"
+            );
+
+
+        const cards =
+            result.data || result;
+
+
+        grid.innerHTML = "";
+
+
+        if (
+            !Array.isArray(cards) ||
+            cards.length === 0
+        ) {
+
+            grid.innerHTML =
+                "<p>No available gift cards.</p>";
+
+            return;
+
+        }
+
+
+        cards.forEach(
+            function(card) {
+
+                const cardElement =
+                    document.createElement("div");
+
+
+                cardElement.className =
+                    "voucher-card";
+
+
+                cardElement.innerHTML = `
+
+                    <div class="voucher-code">
+                        ${card.code ?? "-"}
+                    </div>
+
+                    <div class="voucher-info">
+                        Amount:
+                        <strong>
+                            ₹${card.amount ?? "-"}
+                        </strong>
+                    </div>
+
+                    <div class="voucher-info">
+                        Balance:
+                        <strong>
+                            ₹${card.balance ?? "-"}
+                        </strong>
+                    </div>
+
+                    <div class="voucher-info">
+                        Expiry:
+                        <strong>
+                            ${card.expiryDate ?? "-"}
+                        </strong>
+                    </div>
+
+                    <button
+                        class="action-btn redeem-btn"
+                        onclick="redeemGiftCard('${card.code}', ${card.balance})"
+                    >
+                        Redeem
+                    </button>
+
+                `;
+
+
+                grid.appendChild(cardElement);
+
+            }
+        );
+
+
+    } catch (error) {
+
+        grid.innerHTML = "";
+
+
+        message.textContent =
+            error.message;
+
+
+        message.className =
+            "error-message";
+
+    }
+
+}
+
+
+/* =========================================================
+   CUSTOMER - REDEEM GIFT CARD
+========================================================= */
+
+async function redeemGiftCard(
+    code,
+    balance
+) {
+
+    const amount =
+        prompt(
+            "Enter amount to redeem. Available balance: ₹" +
+            balance
+        );
+
+
+    if (amount === null) {
+
+        return;
+
+    }
+
+
+    const redeemAmount =
+        Number(amount);
+
+
+    if (
+        !Number.isFinite(redeemAmount) ||
+        redeemAmount <= 0
+    ) {
+
+        alert(
+            "Please enter a valid amount."
+        );
+
+        return;
+
+    }
+
+
+    if (redeemAmount > balance) {
+
+        alert(
+            "Amount cannot be greater than available balance."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        const result =
+            await apiRequest(
+                "/api/gift-cards/redeem",
+                {
+                    method: "POST",
+
+                    body: JSON.stringify({
+
+                        code: code,
+
+                        amount: redeemAmount
+
+                    })
+                }
+            );
+
+
+        const card =
+            result.data || result;
+
+
+        alert(
+            "Gift card redeemed successfully!\n" +
+            "Remaining balance: ₹" +
+            card.balance
+        );
+
+
+        loadAvailableGiftCards();
+
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
 }
 
 
@@ -1602,8 +2572,10 @@ window.addEventListener(
         const token =
             localStorage.getItem("token");
 
+
         const role =
             localStorage.getItem("role");
+
 
         if (
             token &&
@@ -1611,7 +2583,9 @@ window.addEventListener(
         ) {
 
             showDashboard(role);
+
         }
+
     }
 );
 
@@ -1619,3 +2593,5 @@ window.addEventListener(
 
 </body>
 </html>
+```
+
