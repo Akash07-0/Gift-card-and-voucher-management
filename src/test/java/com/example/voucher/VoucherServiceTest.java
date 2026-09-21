@@ -1,15 +1,16 @@
 package com.example.voucher;
 
-import com.example.voucher.entity.*;
-import com.example.voucher.repository.*;
+import com.example.voucher.repository.RedemptionRepository;
+import com.example.voucher.repository.UserRepository;
+import com.example.voucher.repository.VoucherRepository;
 import com.example.voucher.service.VoucherService;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class VoucherServiceTest {
 

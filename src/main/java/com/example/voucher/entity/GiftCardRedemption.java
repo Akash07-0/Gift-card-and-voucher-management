@@ -21,16 +21,20 @@ public class GiftCardRedemption {
     @Column(nullable = false)
     private Double amount;
 
+    @Column(name = "remaining_balance", nullable = false)
+    private Double remainingBalance;
+
     @Column(nullable = false)
     private LocalDateTime redeemedAt;
 
     protected GiftCardRedemption() {
     }
 
-    public GiftCardRedemption(GiftCard giftCard, User user, Double amount, LocalDateTime redeemedAt) {
+    public GiftCardRedemption(GiftCard giftCard, User user, Double amount, Double remainingBalance, LocalDateTime redeemedAt) {
         this.giftCard = giftCard;
         this.user = user;
         this.amount = amount;
+        this.remainingBalance = remainingBalance;
         this.redeemedAt = redeemedAt;
     }
 
@@ -38,5 +42,6 @@ public class GiftCardRedemption {
     public GiftCard getGiftCard() { return giftCard; }
     public User getUser() { return user; }
     public Double getAmount() { return amount; }
+    public Double getRemainingBalance() { return remainingBalance; }
     public LocalDateTime getRedeemedAt() { return redeemedAt; }
 }

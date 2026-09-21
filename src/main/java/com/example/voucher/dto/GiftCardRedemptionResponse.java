@@ -9,6 +9,7 @@ public record GiftCardRedemptionResponse(
         String giftCardCode,
         String userEmail,
         Double amount,
+        Double remainingBalance,
         LocalDateTime redeemedAt
 ) {
     public static GiftCardRedemptionResponse from(GiftCardRedemption redemption) {
@@ -17,6 +18,7 @@ public record GiftCardRedemptionResponse(
                 redemption.getGiftCard().getCode(),
                 redemption.getUser().getEmail(),
                 redemption.getAmount(),
+                redemption.getRemainingBalance(),
                 redemption.getRedeemedAt());
     }
 }
