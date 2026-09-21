@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Secure Voucher System</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f2f4f7;
+            min-height: 100vh;
+        }
+
+        /* ================= LOGIN ================= */
+
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            width: 380px;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 11px 18px;
+            background: #4f46e5;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        .login-btn {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        #loginMessage {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* ================= DASHBOARD ================= */
+
+        .dashboard {
+            display: none;
+        }
+
+        .header {
+            background: #4f46e5;
+            color: white;
+            padding: 18px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .role {
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: white;
+            color: #4f46e5;
+            padding: 9px 18px;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            color: #222;
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: #666;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            color: #222;
+        }
+
+        /* ================= VOUCHERS ================= */
+
+        .voucher-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .voucher-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .voucher-card h3 {
+            color: #4f46e5;
+            margin-bottom: 12px;
+        }
+
+        .voucher-card p {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .redeem-btn {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        /* ================= ADMIN FORM ================= */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 5px;
+        }
+
+        .create-btn {
+            margin-top: 10px;
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f5f5;
+        }
+
+        .active {
+            color: green;
+            font-weight: bold;
+        }
+
+        .inactive {
+            color: red;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #4f46e5;
+            font-weight: bold;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .small-btn {
+            padding: 7px 12px;
+            margin-right: 5px;
+            font-size: 13px;
+        }
+
+        .update-btn {
+            background: #0891b2;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 700px) {
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 19px;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            th,
+            td {
+                font-size: 13px;
+            }
+
+            .role {
+                display: none;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ===================================================== -->
+<!-- LOGIN PAGE -->
+<!-- ===================================================== -->
+
+<div id="loginPage" class="login-page">
+
+    <div class="login-box">
+
+        <h1>Secure Voucher</h1>
+
+        <p class="subtitle">
+            Login to your account
+        </p>
+
+
+        <form id="loginForm">
+
+            <label>Email</label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                required
+            >
+
+
+            <label>Password</label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter your password"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="login-btn"
+            >
+                Login
+            </button>
+
+        </form>
+
+
+        <p id="loginMessage"></p>
+
+    </div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- DASHBOARD -->
+<!-- ===================================================== -->
+
+<div id="dashboard" class="dashboard">
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>Secure Voucher System</h1>
+
+        <div class="header-right">
+
+            <span
+                id="roleText"
+                class="role"
+            ></span>
+
+            <button
+                class="logout-btn"
+                onclick="logout()"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="container">
+
+
+        <!-- WELCOME -->
+
+        <div class="welcome">
+
+            <h2 id="dashboardTitle"></h2>
+
+            <p id="dashboardSubtitle"></p>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- CUSTOMER DASHBOARD -->
+        <!-- ================================================= -->
+
+        <div id="customerDashboard">
+
+
+            <!-- AVAILABLE VOUCHERS -->
+
+            <div class="section">
+
+                <h2>
+                    Available Vouchers
+                </h2>
+
+                <p
+                    id="customerMessage"
+                    class="message"
+                ></p>
+
+                <div
+                    id="voucherContainer"
+                    class="voucher-container"
+                >
+                    Loading vouchers...
+                </div>
+
+            </div>
+
+
+
+            <!-- MY HISTORY -->
+
+            <div class="section">
+
+                <h2>
+                    My Redemption History
+                </h2>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Voucher</th>
+
+                                <th>Discount</th>
+
+                                <th>Status</th>
+
+                                <th>Date</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="myHistoryBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- ADMIN DASHBOARD -->
+        <!-- ================================================= -->
+
+        <div id="adminDashboard">
+
+
+            <!-- CREATE VOUCHER -->
+
+            <div class="section">
+
+                <h2>
+                    Create Voucher
+                </h2>
+
+                <p
+                    id="createMessage"
+                    class="message"
+                ></p>
+
+
+                <form id="createVoucherForm">
+
+
+                    <div class="form-grid">
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Voucher Code
+                            </label>
+
+                            <input
+                                type="text"
+                                id="voucherCode"
+                                placeholder="Example: NEW100"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Discount
+                            </label>
+
+                            <input
+                                type="number"
+                                id="discount"
+                                placeholder="100"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Expiry Date
+                            </label>
+
+                            <input
+                                type="date"
+                                id="expiryDate"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Maximum Usage
+                            </label>
+
+                            <input
+                                type="number"
+                                id="maxUsage"
+                                placeholder="10"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="create-btn"
+                    >
+                        Create Voucher
+                    </button>
+
+                </form>
+
+            </div>
+
+
+
+            <!-- ALL VOUCHERS -->
+
+            <div class="section">
+
+                <h2>
+                    All Vouchers
+                </h2>
+
+
+                <p
+                    id="adminVoucherMessage"
+                    class="message"
+                ></p>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Code</th>
+
+                                <th>Discount</th>
+
+                                <th>Expiry</th>
+
+                                <th>Usage</th>
+
+                                <th>Status</th>
+
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="adminVoucherBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ALL REDEMPTION HISTORY -->
+
+            <div class="section">
+
+                <h2>
+                    All Redemption History
+                </h2>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Voucher</th>
+
+                                <th>Discount</th>
+
+                                <th>Status</th>
+
+                                <th>Date</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="adminHistoryBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+
+/* ===================================================== */
+/* BACKEND URL */
+/* ===================================================== */
+
+const API = "http://localhost:8080";
+
+
+/* ===================================================== */
+/* LOGIN */
+/* ===================================================== */
+
+document
+    .getElementById("loginForm")
+    .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+
+        const email =
+            document.getElementById("email").value;
+
+        const password =
+            document.getElementById("password").value;
+
+        const message =
+            document.getElementById("loginMessage");
+
+
+        message.innerText = "Logging in...";
+        message.style.color = "#4f46e5";
+
+
+        try {
+
+
+            const response = await fetch(
+                API + "/api/auth/login",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            if (response.ok) {
+
+
+                /* Save JWT */
+
+                localStorage.setItem(
+                    "token",
+                    data.token
+                );
+
+
+                /* Save role */
+
+                localStorage.setItem(
+                    "role",
+                    data.role
+                );
+
+
+                message.innerText =
+                    "Login successful!";
+
+                message.style.color = "green";
+
+
+                /* Show dashboard */
+
+                showDashboard(data.role);
+
+
+            } else {
+
+
+                message.innerText =
+                    data.message || "Login failed";
+
+                message.style.color = "red";
+
+            }
+
+
+        } catch (error) {
+
+
+            console.log(error);
+
+            message.innerText =
+                "Backend server is not running";
+
+            message.style.color = "red";
+
+        }
+
+    });
+
+
+
+/* ===================================================== */
+/* SHOW DASHBOARD */
+/* ===================================================== */
+
+function showDashboard(role) {
+
+
+    document.getElementById("loginPage")
+        .style.display = "none";
+
+
+    document.getElementById("dashboard")
+        .style.display = "block";
+
+
+    document.getElementById("roleText")
+        .innerText = role;
+
+
+    if (role === "ADMIN") {
+
+
+        document.getElementById("dashboardTitle")
+            .innerText = "Admin Dashboard";
+
+
+        document.getElementById("dashboardSubtitle")
+            .innerText =
+            "Manage vouchers and redemption history.";
+
+
+        document.getElementById("customerDashboard")
+            .style.display = "none";
+
+
+        document.getElementById("adminDashboard")
+            .style.display = "block";
+
+
+        loadAdminVouchers();
+
+        loadAdminHistory();
+
+
+    } else if (role === "CUSTOMER") {
+
+
+        document.getElementById("dashboardTitle")
+            .innerText = "Customer Dashboard";
+
+
+        document.getElementById("dashboardSubtitle")
+            .innerText =
+            "View and redeem available vouchers.";
+
+
+        document.getElementById("adminDashboard")
+            .style.display = "none";
+
+
+        document.getElementById("customerDashboard")
+            .style.display = "block";
+
+
+        loadCustomerVouchers();
+
+        loadMyHistory();
+
+
+    } else {
+
+
+        logout();
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* GET TOKEN */
+/* ===================================================== */
+
+function getToken() {
+
+    return localStorage.getItem("token");
+
+}
+
+
+
+/* ===================================================== */
+/* CUSTOMER - AVAILABLE VOUCHERS */
+/* ===================================================== */
+
+async function loadCustomerVouchers() {
+
+
+    const container =
+        document.getElementById("voucherContainer");
+
+
+    try {
+
+
+        const response = await fetch(
+            API + "/api/vouchers/available",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + getToken()
+                }
+            }
+        );
+
+
+        if (response.status === 401 ||
+            response.status === 403) {
+
+            logout();
+            return;
+
+        }
+
+
+        const vouchers =
+            await response.json();
+
+
+        container.innerHTML = "";
+
+
+        if (vouchers.length === 0) {
+
+            container.innerHTML =
+                "<p>No vouchers available.</p>";
+
+            return;
+
+        }
+
+
+        vouchers.forEach(function(voucher) {
+
+
+            const card =
+                document.createElement("div");
+
+
+            card.className =
+                "voucher-card";
+
+
+            card.innerHTML = `
+
+                <h3>${voucher.code}</h3>
+
+                <p>
+                    <strong>Discount:</strong>
+                    ₹${voucher.discount}
+                </p>
+
+                <p>
+                    <strong>Expiry:</strong>
+                    ${voucher.expiryDate}
+                </p>
+
+                <p>
+                    <strong>Usage:</strong>
+                    ${voucher.currentUsage}
+                    /
+                    ${voucher.maxUsage}
+                </p>
+
+                <button
+                    class="redeem-btn"
+                    onclick="redeemVoucher('${voucher.code}')"
+                >
+                    Redeem Voucher
+                </button>
+
+            `;
+
+
+            container.appendChild(card);
+
+        });
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        container.innerHTML =
+            "<p class='error'>Unable to load vouchers.</p>";
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* CUSTOMER - REDEEM */
+/* ===================================================== */
+
+async function redeemVoucher(code) {
+
+
+    const message =
+        document.getElementById("customerMessage");
+
+
+    message.innerText =
+        "Redeeming voucher...";
+
+    message.style.color = "#4f46e5";
+
+
+    try {
+
+
+        const response = await fetch(
+            API + "/api/redemptions",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+
+                    "Authorization":
+                        "Bearer " + getToken()
+                },
+
+                body: JSON.stringify({
+                    code: code
+                })
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (response.ok) {
+
+
+            message.innerText =
+                "Voucher redeemed successfully!";
+
+            message.style.color = "green";
+
+
+            loadCustomerVouchers();
+
+            loadMyHistory();
+
+
+        } else {
+
+
+            message.innerText =
+                data.message ||
+                data.error ||
+                "Redemption failed";
+
+
+            message.style.color = "red";
+
+        }
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        message.innerText =
+            "Unable to connect to backend.";
+
+        message.style.color = "red";
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* CUSTOMER - MY HISTORY */
+/* ===================================================== */
+
+async function loadMyHistory() {
+
+
+    const body =
+        document.getElementById("myHistoryBody");
+
+
+    try {
+
+
+        const response = await fetch(
+            API + "/api/redemptions/my-history",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + getToken()
+                }
+            }
+        );
+
+
+        if (response.status === 401 ||
+            response.status === 403) {
+
+            logout();
+            return;
+
+        }
+
+
+        const history =
+            await response.json();
+
+
+        body.innerHTML = "";
+
+
+        if (history.length === 0) {
+
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td colspan="5">
+                        No redemption history.
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            return;
+
+        }
+
+
+        history.forEach(function(item) {
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>${item.id}</td>
+
+                <td>${item.voucherCode}</td>
+
+                <td>₹${item.discount}</td>
+
+                <td class="success">
+                    ${item.status}
+                </td>
+
+                <td>${item.redeemedAt}</td>
+
+            `;
+
+
+            body.appendChild(row);
+
+        });
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        body.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="5"
+                    class="error"
+                >
+                    Unable to load history.
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* ADMIN - CREATE VOUCHER */
+/* ===================================================== */
+
+document
+    .getElementById("createVoucherForm")
+    .addEventListener("submit", async function(event) {
+
+
+        event.preventDefault();
+
+
+        const message =
+            document.getElementById("createMessage");
+
+
+        const code =
+            document.getElementById("voucherCode").value;
+
+        const discount =
+            document.getElementById("discount").value;
+
+        const expiryDate =
+            document.getElementById("expiryDate").value;
+
+        const maxUsage =
+            document.getElementById("maxUsage").value;
+
+
+        try {
+
+
+            const response = await fetch(
+                API + "/api/vouchers",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+
+                        "Authorization":
+                            "Bearer " + getToken()
+                    },
+
+                    body: JSON.stringify({
+
+                        code: code,
+
+                        discount: Number(discount),
+
+                        expiryDate: expiryDate,
+
+                        maxUsage: Number(maxUsage)
+
+                    })
+                }
+            );
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+
+
+                message.innerText =
+                    "Voucher created successfully!";
+
+
+                message.style.color = "green";
+
+
+                document
+                    .getElementById("createVoucherForm")
+                    .reset();
+
+
+                loadAdminVouchers();
+
+
+            } else {
+
+
+                message.innerText =
+                    data.message ||
+                    data.error ||
+                    "Failed to create voucher";
+
+
+                message.style.color = "red";
+
+            }
+
+
+        } catch (error) {
+
+
+            console.log(error);
+
+            message.innerText =
+                "Unable to connect to backend.";
+
+            message.style.color = "red";
+
+        }
+
+    });
+
+
+
+/* ===================================================== */
+/* ADMIN - ALL VOUCHERS */
+/* ===================================================== */
+
+async function loadAdminVouchers() {
+
+
+    const body =
+        document.getElementById("adminVoucherBody");
+
+
+    try {
+
+
+        const response = await fetch(
+            API + "/api/vouchers",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + getToken()
+                }
+            }
+        );
+
+
+        if (response.status === 401 ||
+            response.status === 403) {
+
+            logout();
+            return;
+
+        }
+
+
+        const vouchers =
+            await response.json();
+
+
+        body.innerHTML = "";
+
+
+        if (vouchers.length === 0) {
+
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td colspan="7">
+                        No vouchers found.
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            return;
+
+        }
+
+
+        vouchers.forEach(function(voucher) {
+
+
+            const row =
+                document.createElement("tr");
+
+
+            const status =
+                voucher.active
+                    ? "ACTIVE"
+                    : "INACTIVE";
+
+
+            const statusClass =
+                voucher.active
+                    ? "active"
+                    : "inactive";
+
+
+            row.innerHTML = `
+
+                <td>${voucher.id}</td>
+
+                <td>${voucher.code}</td>
+
+                <td>₹${voucher.discount}</td>
+
+                <td>${voucher.expiryDate}</td>
+
+                <td>
+                    ${voucher.currentUsage}
+                    /
+                    ${voucher.maxUsage}
+                </td>
+
+                <td class="${statusClass}">
+                    ${status}
+                </td>
+
+                <td>
+
+                    ${
+                        voucher.active
+                        ?
+
+                        `
+
+                        <button
+                            class="small-btn update-btn"
+                            onclick="updateVoucher(${voucher.id})"
+                        >
+                            Update
+                        </button>
+
+                        <button
+                            class="small-btn delete-btn"
+                            onclick="deactivateVoucher(${voucher.id})"
+                        >
+                            Deactivate
+                        </button>
+
+                        `
+
+                        :
+
+                        `<span class="inactive">
+                            Disabled
+                        </span>`
+
+                    }
+
+                </td>
+
+            `;
+
+
+            body.appendChild(row);
+
+        });
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        body.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="error"
+                >
+                    Unable to load vouchers.
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* ADMIN - UPDATE VOUCHER */
+/* ===================================================== */
+
+async function updateVoucher(id) {
+
+
+    const discount =
+        prompt("Enter new discount:");
+
+
+    if (discount === null) {
+        return;
+    }
+
+
+    const expiryDate =
+        prompt(
+            "Enter new expiry date (YYYY-MM-DD):"
+        );
+
+
+    if (expiryDate === null) {
+        return;
+    }
+
+
+    const maxUsage =
+        prompt("Enter new maximum usage:");
+
+
+    if (maxUsage === null) {
+        return;
+    }
+
+
+    try {
+
+
+        /* Get current voucher */
+
+        const response =
+            await fetch(
+                API + "/api/vouchers",
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + getToken()
+                    }
+                }
+            );
+
+
+        const vouchers =
+            await response.json();
+
+
+        const voucher =
+            vouchers.find(
+                v => v.id === id
+            );
+
+
+        if (!voucher) {
+
+            alert("Voucher not found.");
+            return;
+
+        }
+
+
+        const updateResponse =
+            await fetch(
+                API + "/api/vouchers/" + id,
+                {
+                    method: "PUT",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " + getToken()
+
+                    },
+
+                    body: JSON.stringify({
+
+                        code: voucher.code,
+
+                        discount:
+                            Number(discount),
+
+                        expiryDate:
+                            expiryDate,
+
+                        maxUsage:
+                            Number(maxUsage)
+
+                    })
+                }
+            );
+
+
+        const data =
+            await updateResponse.json();
+
+
+        if (updateResponse.ok) {
+
+
+            alert(
+                "Voucher updated successfully!"
+            );
+
+
+            loadAdminVouchers();
+
+
+        } else {
+
+
+            alert(
+                data.message ||
+                data.error ||
+                "Update failed."
+            );
+
+        }
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        alert(
+            "Unable to connect to backend."
+        );
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* ADMIN - DEACTIVATE */
+/* ===================================================== */
+
+async function deactivateVoucher(id) {
+
+
+    const confirmDelete =
+        confirm(
+            "Are you sure you want to deactivate this voucher?"
+        );
+
+
+    if (!confirmDelete) {
+        return;
+    }
+
+
+    try {
+
+
+        const response =
+            await fetch(
+                API + "/api/vouchers/" + id,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + getToken()
+                    }
+                }
+            );
+
+
+        if (response.ok) {
+
+
+            alert(
+                "Voucher deactivated successfully!"
+            );
+
+
+            loadAdminVouchers();
+
+
+        } else {
+
+
+            const data =
+                await response.json();
+
+
+            alert(
+                data.message ||
+                "Failed to deactivate voucher."
+            );
+
+        }
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        alert(
+            "Unable to connect to backend."
+        );
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* ADMIN - ALL HISTORY */
+/* ===================================================== */
+
+async function loadAdminHistory() {
+
+
+    const body =
+        document.getElementById("adminHistoryBody");
+
+
+    try {
+
+
+        const response = await fetch(
+            API + "/api/redemptions",
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + getToken()
+                }
+            }
+        );
+
+
+        if (response.status === 401 ||
+            response.status === 403) {
+
+            logout();
+            return;
+
+        }
+
+
+        const history =
+            await response.json();
+
+
+        body.innerHTML = "";
+
+
+        if (history.length === 0) {
+
+
+            body.innerHTML = `
+
+                <tr>
+
+                    <td colspan="5">
+                        No redemption history.
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            return;
+
+        }
+
+
+        history.forEach(function(item) {
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>${item.id}</td>
+
+                <td>${item.voucherCode}</td>
+
+                <td>₹${item.discount}</td>
+
+                <td class="success">
+                    ${item.status}
+                </td>
+
+                <td>${item.redeemedAt}</td>
+
+            `;
+
+
+            body.appendChild(row);
+
+        });
+
+
+    } catch (error) {
+
+
+        console.log(error);
+
+        body.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="5"
+                    class="error"
+                >
+                    Unable to load history.
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+
+/* ===================================================== */
+/* LOGOUT */
+/* ===================================================== */
+
+function logout() {
+
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("role");
+
+
+    document.getElementById("dashboard")
+        .style.display = "none";
+
+
+    document.getElementById("loginPage")
+        .style.display = "flex";
+
+
+    document.getElementById("email").value = "";
+
+    document.getElementById("password").value = "";
+
+}
+
+
+
+/* ===================================================== */
+/* AUTO LOGIN CHECK */
+/* ===================================================== */
+
+window.onload = function() {
+
+
+    const token =
+        localStorage.getItem("token");
+
+    const role =
+        localStorage.getItem("role");
+
+
+    if (token && role) {
+
+        showDashboard(role);
+
+    }
+
+};
+
+</script>
+
+
+</body>
+
+</html>
