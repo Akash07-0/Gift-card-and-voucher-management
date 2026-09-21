@@ -33,7 +33,8 @@ public class GiftCardService {
         this.userRepository = userRepository;
     }
 
-    public GiftCardResponse create(
+        @Transactional
+        public GiftCardResponse create(
             GiftCardRequest request,
             String adminEmail) {
 
@@ -101,7 +102,7 @@ public class GiftCardService {
             String customerEmail) {
 
         GiftCard giftCard = giftCardRepository
-                .findByCode(request.code())
+                .findByCodeForUpdate(request.code())
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Gift card not found"));
@@ -135,6 +136,7 @@ public class GiftCardService {
                         giftCard,
                         customer,
                         request.amount(),
+                        giftCard.getBalance(),
                         java.time.LocalDateTime.now()));
 
         return GiftCardResponse.from(

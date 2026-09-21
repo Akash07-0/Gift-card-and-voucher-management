@@ -1,6 +1,7 @@
 package com.example.voucher.exception;
 
 import org.springframework.http.*;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException ex) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+        String message = ex.getMessage();
+        HttpStatus status = message != null && (message.contains("already") || message.contains("duplicate"))
+            ? HttpStatus.CONFLICT
+            : message != null && message.contains("not found")
+                ? HttpStatus.NOT_FOUND
+                : HttpStatus.BAD_REQUEST;
+        return build(status, message, null);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> authenticationFailure(AuthenticationException ex) {
+        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password", null);
     }
 
     @ExceptionHandler(IllegalStateException.class)

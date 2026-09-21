@@ -11,7 +11,10 @@ api.interceptors.request.use((config) => {
 });
 
 export function messageFromError(error) {
-  return error.response?.data?.message || error.response?.data?.error || 'Request failed. Please try again.';
+  if (!error.response) {
+    return 'Backend server is not running. Start the backend and try again.';
+  }
+  return error.response.data?.message || error.response.data?.error || 'Login failed. Please check your details and try again.';
 }
 
 export default api;
