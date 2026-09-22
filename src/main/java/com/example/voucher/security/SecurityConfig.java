@@ -56,8 +56,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http)
-            throws Exception {
+            HttpSecurity http) throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
@@ -74,9 +73,28 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // =========================
+                // FRONTEND
+                // =========================
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/favicon.ico"
+                )
+                .permitAll()
+
+                // =========================
+                // AUTH
+                // =========================
                 .requestMatchers("/api/auth/**")
                 .permitAll()
 
+                // =========================
+                // SWAGGER
+                // =========================
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
@@ -84,9 +102,15 @@ public class SecurityConfig {
                 )
                 .permitAll()
 
+                // =========================
+                // HEALTH
+                // =========================
                 .requestMatchers("/health")
                 .permitAll()
 
+                // =========================
+                // ADMIN - VOUCHERS
+                // =========================
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/vouchers"
@@ -111,12 +135,18 @@ public class SecurityConfig {
                 )
                 .hasRole("ADMIN")
 
+                // =========================
+                // AVAILABLE VOUCHERS
+                // =========================
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/vouchers/available"
                 )
                 .hasAnyRole("ADMIN", "CUSTOMER")
 
+                // =========================
+                // CUSTOMER - REDEMPTION
+                // =========================
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/redemptions"
@@ -129,12 +159,18 @@ public class SecurityConfig {
                 )
                 .hasRole("CUSTOMER")
 
+                // =========================
+                // ADMIN - REDEMPTIONS
+                // =========================
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/redemptions"
                 )
                 .hasRole("ADMIN")
 
+                // =========================
+                // OTHER REQUESTS
+                // =========================
                 .anyRequest()
                 .authenticated()
             )
