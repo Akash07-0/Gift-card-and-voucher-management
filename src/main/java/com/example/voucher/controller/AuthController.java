@@ -30,12 +30,18 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, String>> currentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String role = authentication.getAuthorities().stream()
+            .findFirst()
+            .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+            .orElse("CUSTOMER");
+
         return ResponseEntity.ok(Map.of(
             "email", authentication.getName(),
-            "role", authentication.getAuthorities().stream()
-                .findFirst()
-                .map(authority -> authority.getAuthority().replace("ROLE_", ""))
-                .orElse("")
+            "role", role
         ));
     }
 }

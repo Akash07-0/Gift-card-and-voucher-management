@@ -28,31 +28,33 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
+        String cleanEmail = request.email() != null ? request.email().trim() : "";
+        if (userRepository.existsByEmail(cleanEmail)) {
             throw new IllegalArgumentException("Email already registered");
         }
 
         User user = new User(
             request.name(),
-            request.email(),
+            cleanEmail,
             passwordEncoder.encode(request.password()),
             Role.CUSTOMER
         );
 
         userRepository.save(user);
-        return new AuthResponse(jwtUtil.generateToken(user.getEmail(), user.getRole().name()),
-                                user.getRole().name());
+        String roleName = user.getRole() != null ? user.getRole().name() : "CUSTOMER";
+        return new AuthResponse(jwtUtil.generateToken(user.getEmail(), roleName), roleName);
     }
 
     public AuthResponse login(LoginRequest request) {
+        String cleanEmail = request.email() != null ? request.email().trim() : "";
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.email(), request.password())
+            new UsernamePasswordAuthenticationToken(cleanEmail, request.password())
         );
 
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(cleanEmail)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return new AuthResponse(jwtUtil.generateToken(user.getEmail(), user.getRole().name()),
-                                user.getRole().name());
+        String roleName = user.getRole() != null ? user.getRole().name() : "CUSTOMER";
+        return new AuthResponse(jwtUtil.generateToken(user.getEmail(), roleName), roleName);
     }
 }

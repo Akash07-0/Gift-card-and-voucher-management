@@ -15,6 +15,9 @@ export function AuthProvider({ children }) {
 
     api.get('/auth/me')
       .then(({ data }) => {
+        if (!data || !data.role) {
+          throw new Error('Invalid user role');
+        }
         localStorage.setItem('voucher_role', data.role);
         setSession({ token, role: data.role, loading: false });
       })
@@ -26,20 +29,41 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function login(email, password) {
-    localStorage.removeItem('voucher_token');
-    localStorage.removeItem('voucher_role');
-    setSession({ token: null, role: null, loading: true });
-    const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('voucher_token', data.token);
-    localStorage.setItem('voucher_role', data.role);
-    setSession({ token: data.token, role: data.role, loading: false });
+    try {
+      const cleanEmail = email ? email.trim() : '';
+      const { data } = await api.post('/auth/login', { email: cleanEmail, password });
+      if (!data || !data.token || !data.role) {
+        throw new Error('Invalid response from authentication server');
+      }
+      localStorage.setItem('voucher_token', data.token);
+      localStorage.setItem('voucher_role', data.role);
+      setSession({ token: data.token, role: data.role, loading: false });
+      return data;
+    } catch (error) {
+      localStorage.removeItem('voucher_token');
+      localStorage.removeItem('voucher_role');
+      setSession({ token: null, role: null, loading: false });
+      throw error;
+    }
   }
 
   async function register(name, email, password) {
-    const { data } = await api.post('/auth/register', { name, email, password });
-    localStorage.setItem('voucher_token', data.token);
-    localStorage.setItem('voucher_role', data.role);
-    setSession({ token: data.token, role: data.role, loading: false });
+    try {
+      const cleanEmail = email ? email.trim() : '';
+      const { data } = await api.post('/auth/register', { name, email: cleanEmail, password });
+      if (!data || !data.token || !data.role) {
+        throw new Error('Invalid response from registration server');
+      }
+      localStorage.setItem('voucher_token', data.token);
+      localStorage.setItem('voucher_role', data.role);
+      setSession({ token: data.token, role: data.role, loading: false });
+      return data;
+    } catch (error) {
+      localStorage.removeItem('voucher_token');
+      localStorage.removeItem('voucher_role');
+      setSession({ token: null, role: null, loading: false });
+      throw error;
+    }
   }
 
   function logout() {

@@ -42,6 +42,15 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
+        String msg = ex.getMessage();
+        if (msg == null || msg.isBlank()) {
+            msg = "An unexpected server error occurred";
+        }
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, msg, null);
+    }
+
     private ResponseEntity<Map<String, Object>> build(
         HttpStatus status, String message, Object details
     ) {

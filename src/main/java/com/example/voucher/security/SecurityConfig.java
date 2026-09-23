@@ -27,15 +27,18 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final String allowedOrigins;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             UserDetailsService userDetailsService,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
             @Value("${app.cors.allowed-origins}") String allowedOrigins) {
 
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -47,9 +50,7 @@ public class SecurityConfig {
 
         provider.setUserDetailsService(userDetailsService);
 
-        provider.setPasswordEncoder(
-                new BCryptPasswordEncoder()
-        );
+        provider.setPasswordEncoder(passwordEncoder);
 
         return provider;
     }
@@ -103,9 +104,9 @@ public class SecurityConfig {
                 .permitAll()
 
                 // =========================
-                // HEALTH
+                // HEALTH & ERROR
                 // =========================
-                .requestMatchers("/health")
+                .requestMatchers("/health", "/error")
                 .permitAll()
 
                 // =========================
