@@ -57,4 +57,15 @@ public class VoucherController {
         voucherService.deactivate(id);
         return ResponseEntity.noContent().build();
     }
+
+    // ACTIVATE VOUCHER
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VoucherResponse> activate(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                voucherService.activate(id)
+        );
+    }
 }

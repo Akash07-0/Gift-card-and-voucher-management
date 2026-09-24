@@ -107,6 +107,18 @@ public class VoucherService {
         voucherRepository.save(voucher);
     }
 
+    // ACTIVATES AN INACTIVE VOUCHER
+    public VoucherResponse activate(Long id) {
+
+        Voucher voucher = getVoucher(id);
+
+        voucher.setActive(true);
+
+        return VoucherResponse.from(
+            voucherRepository.save(voucher)
+        );
+    }
+
     public Voucher getVoucher(Long id) {
 
         return voucherRepository.findById(id)
