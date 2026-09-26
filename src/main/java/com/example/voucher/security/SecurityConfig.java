@@ -1,6 +1,5 @@
 package com.example.voucher.security;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,7 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -19,7 +17,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity
@@ -28,18 +25,15 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
-    private final String allowedOrigins;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             UserDetailsService userDetailsService,
-            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
-            @Value("${app.cors.allowed-origins}") String allowedOrigins) {
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
 
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
-        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
@@ -49,7 +43,6 @@ public class SecurityConfig {
                 new DaoAuthenticationProvider();
 
         provider.setUserDetailsService(userDetailsService);
-
         provider.setPasswordEncoder(passwordEncoder);
 
         return provider;
@@ -74,12 +67,18 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // =========================
-                // FRONTEND
-                // =========================
+                // CORS preflight
+                .requestMatchers(
+                    HttpMethod.OPTIONS,
+                    "/**"
+                )
+                .permitAll()
+
+                // Frontend / static
                 .requestMatchers(
                     "/",
                     "/index.html",
+                    "/assets/**",
                     "/css/**",
                     "/js/**",
                     "/images/**",
@@ -87,15 +86,11 @@ public class SecurityConfig {
                 )
                 .permitAll()
 
-                // =========================
-                // AUTH
-                // =========================
+                // Authentication
                 .requestMatchers("/api/auth/**")
                 .permitAll()
 
-                // =========================
-                // SWAGGER
-                // =========================
+                // Swagger
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
@@ -103,15 +98,45 @@ public class SecurityConfig {
                 )
                 .permitAll()
 
-                // =========================
-                // HEALTH & ERROR
-                // =========================
-                .requestMatchers("/health", "/error")
+                // Health / error
+                .requestMatchers(
+                    "/health",
+                    "/error"
+                )
                 .permitAll()
 
-                // =========================
-                // ADMIN - VOUCHERS
-                // =========================
+                // Admin
+                .requestMatchers("/api/admin/**")
+                .hasRole("ADMIN")
+
+                // Merchant
+                .requestMatchers("/api/merchant/**")
+                .hasRole("MERCHANT")
+
+                // Available vouchers / gift cards
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/vouchers/available",
+                    "/api/gift-cards/available"
+                )
+                .hasAnyRole("ADMIN", "CUSTOMER")
+
+                // Customer redemption
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/redemptions",
+                    "/api/gift-cards/redeem"
+                )
+                .hasRole("CUSTOMER")
+
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/redemptions/my-history",
+                    "/api/gift-cards/my-history"
+                )
+                .hasRole("CUSTOMER")
+
+                // Admin vouchers
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/vouchers"
@@ -136,42 +161,39 @@ public class SecurityConfig {
                 )
                 .hasRole("ADMIN")
 
-                // =========================
-                // AVAILABLE VOUCHERS
-                // =========================
+                // Admin gift cards
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/api/vouchers/available"
+                    "/api/gift-cards",
+                    "/api/gift-cards/redemptions"
                 )
-                .hasAnyRole("ADMIN", "CUSTOMER")
+                .hasRole("ADMIN")
 
-                // =========================
-                // CUSTOMER - REDEMPTION
-                // =========================
                 .requestMatchers(
                     HttpMethod.POST,
-                    "/api/redemptions"
+                    "/api/gift-cards"
                 )
-                .hasRole("CUSTOMER")
+                .hasRole("ADMIN")
 
                 .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/redemptions/my-history"
+                    HttpMethod.PUT,
+                    "/api/gift-cards/**"
                 )
-                .hasRole("CUSTOMER")
+                .hasRole("ADMIN")
 
-                // =========================
-                // ADMIN - REDEMPTIONS
-                // =========================
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/gift-cards/**"
+                )
+                .hasRole("ADMIN")
+
+                // Admin redemptions
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/redemptions"
                 )
                 .hasRole("ADMIN")
 
-                // =========================
-                // OTHER REQUESTS
-                // =========================
                 .anyRequest()
                 .authenticated()
             )
@@ -191,10 +213,17 @@ public class SecurityConfig {
                 new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-            Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(origin -> !origin.isBlank())
-                .toList()
+            List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+
+                // Your current Vite frontend
+                "http://localhost:5175",
+                "http://127.0.0.1:5175",
+
+                "http://localhost:5500",
+                "http://127.0.0.1:5500"
+            )
         );
 
         configuration.setAllowedMethods(
@@ -217,8 +246,8 @@ public class SecurityConfig {
                 new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration(
-                "/**",
-                configuration
+            "/**",
+            configuration
         );
 
         return source;

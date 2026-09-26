@@ -7,6 +7,7 @@ import com.example.voucher.service.VoucherService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import com.example.voucher.entity.DiscountType;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -27,7 +28,7 @@ class VoucherServiceTest {
         assertThrows(IllegalArgumentException.class, () ->
             service.create(
                 new com.example.voucher.dto.VoucherRequest(
-                    "SAVE100", "Test", 100.0, LocalDate.now().plusDays(10), 10
+                    "SAVE100", "Test", 100.0, LocalDate.now().plusDays(10), 10, DiscountType.FIXED_AMOUNT, "INR"
                 ),
                 "admin@voucher.com"
             )

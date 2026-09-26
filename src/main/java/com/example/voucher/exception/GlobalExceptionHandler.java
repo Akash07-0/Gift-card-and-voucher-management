@@ -1,9 +1,14 @@
 package com.example.voucher.exception;
 
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,21 +20,44 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex) {
         Map<String, String> fields = new HashMap<>();
-        ex.getBindingResult().getFieldErrors()
-            .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
+        StringBuilder summary = new StringBuilder();
 
-        return build(HttpStatus.BAD_REQUEST, "Validation failed", fields);
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            fields.put(error.getField(), error.getDefaultMessage());
+            if (summary.length() == 0) {
+                summary.append(error.getDefaultMessage());
+            }
+        });
+
+        String message = summary.length() > 0 ? summary.toString() : "Validation failed";
+        return build(HttpStatus.BAD_REQUEST, message, fields);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        String msg = "Invalid request format. Please verify date formats (YYYY-MM-DD) and numeric fields.";
+        return build(HttpStatus.BAD_REQUEST, msg, null);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException ex) {
         String message = ex.getMessage();
-        HttpStatus status = message != null && (message.contains("already") || message.contains("duplicate"))
+        HttpStatus status = message != null && (message.toLowerCase().contains("already exists") || message.toLowerCase().contains("duplicate"))
             ? HttpStatus.CONFLICT
-            : message != null && message.contains("not found")
+            : message != null && message.toLowerCase().contains("not found")
                 ? HttpStatus.NOT_FOUND
                 : HttpStatus.BAD_REQUEST;
         return build(status, message, null);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> conflict(IllegalStateException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
+        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password", null);
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -37,9 +65,9 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, "Invalid email or password", null);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, Object>> conflict(IllegalStateException ex) {
-        return build(HttpStatus.CONFLICT, ex.getMessage(), null);
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return build(HttpStatus.FORBIDDEN, "Access denied. You do not have permission to perform this action.", null);
     }
 
     @ExceptionHandler(Exception.class)
@@ -63,3 +91,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 }
+

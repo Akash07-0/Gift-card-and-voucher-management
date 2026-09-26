@@ -14,7 +14,9 @@ public interface GiftCardRepository extends JpaRepository<GiftCard, Long> {
 
     Optional<GiftCard> findByCode(String code);
 
+    long countByActiveTrue();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select card from GiftCard card where card.code = :code")
     Optional<GiftCard> findByCodeForUpdate(String code);
-}
+}

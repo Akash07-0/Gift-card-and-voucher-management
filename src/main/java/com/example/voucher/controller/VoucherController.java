@@ -7,7 +7,10 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.voucher.security.JwtUtil;
+import com.example.voucher.repository.UserRepository;
+import com.example.voucher.entity.User;
+import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -15,9 +18,13 @@ import java.util.List;
 public class VoucherController {
 
     private final VoucherService voucherService;
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public VoucherController(VoucherService voucherService) {
+    public VoucherController(VoucherService voucherService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.voucherService = voucherService;
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
@@ -67,5 +74,18 @@ public class VoucherController {
         return ResponseEntity.ok(
                 voucherService.activate(id)
         );
+    }
+
+    @GetMapping("/{code}/qr")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Map<String, String>> generateQrToken(
+            @PathVariable String code,
+            Authentication authentication
+    ) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        String token = jwtUtil.generateQrToken(user.getId(), code);
+        return ResponseEntity.ok(Map.of("qrToken", token));
     }
 }

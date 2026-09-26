@@ -62,7 +62,10 @@ public class GiftCardController {
             Authentication authentication) {
 
         return ResponseEntity.ok(
-                giftCardService.redeem(request, authentication.getName())
+                giftCardService.redeem(
+                        request,
+                        authentication.getName()
+                )
         );
     }
 
@@ -70,22 +73,41 @@ public class GiftCardController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<GiftCardRedemptionResponse>> myHistory(
             Authentication authentication) {
+
         return ResponseEntity.ok(
-                giftCardService.myRedemptionHistory(authentication.getName()));
+                giftCardService.myRedemptionHistory(
+                        authentication.getName()
+                )
+        );
     }
 
     @GetMapping("/redemptions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<GiftCardRedemptionResponse>> allRedemptions() {
-        return ResponseEntity.ok(giftCardService.allRedemptions());
+
+        return ResponseEntity.ok(
+                giftCardService.allRedemptions()
+        );
     }
 
+    // DEACTIVATE GIFT CARD
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivate(
             @PathVariable Long id) {
 
         giftCardService.deactivate(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // ACTIVATE GIFT CARD
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> activate(
+            @PathVariable Long id) {
+
+        giftCardService.activate(id);
 
         return ResponseEntity.noContent().build();
     }

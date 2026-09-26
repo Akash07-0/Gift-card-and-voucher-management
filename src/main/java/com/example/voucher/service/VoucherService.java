@@ -8,6 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class VoucherService {
@@ -66,11 +70,12 @@ public class VoucherService {
         return voucherRepository.findAll()
             .stream()
             .filter(v -> v.isActive())
-            .filter(v -> v.getExpiryDate().isAfter(today))
+            .filter(v -> !v.getExpiryDate().isBefore(today))
             .filter(v -> v.getCurrentUsage() < v.getMaxUsage())
             .map(VoucherResponse::from)
             .toList();
     }
+
 
     public VoucherResponse update(
         Long id,

@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
+import MerchantDashboard from './pages/merchant/MerchantDashboard';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -76,18 +77,25 @@ function MainLayout() {
   }
 
   const role = String(auth.role).toUpperCase();
-  const Dashboard = role === 'ADMIN' ? AdminDashboard : CustomerDashboard;
+  let Dashboard = CustomerDashboard;
+  if (role === 'ADMIN') Dashboard = AdminDashboard;
+  if (role === 'MERCHANT') Dashboard = MerchantDashboard;
 
   return (
     <>
       <header className="topbar">
+
         <div className="brand">
           <span className="brand-mark">GC</span>
           <span>Gift Card and Voucher Management System</span>
         </div>
         <div className="topbar-right">
-          <span className="role-pill">{auth.role}</span>
-          <button className="logout" onClick={auth.logout}>Log out</button>
+          <div className="user-tag">
+            <span className={`role-pill ${role === 'ADMIN' ? 'admin' : ''}`}>{auth.role}</span>
+          </div>
+          <button type="button" className="logout-btn" onClick={auth.logout}>
+            Log out
+          </button>
         </div>
       </header>
       <Dashboard />
@@ -102,3 +110,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+

@@ -38,15 +38,19 @@ export function messageFromError(error) {
   }
 
   if (data && typeof data === 'object') {
-    if (data.message && typeof data.message === 'string' && data.message !== 'No message available') {
+    // If validation details exist, show detailed field errors
+    if (data.details && typeof data.details === 'object' && Object.keys(data.details).length > 0) {
+      const messages = Object.values(data.details).filter(Boolean);
+      if (messages.length > 0) {
+        return messages.join('. ');
+      }
+    }
+
+    if (data.message && typeof data.message === 'string' && data.message !== 'No message available' && data.message !== 'Validation failed') {
       return data.message;
     }
-    if (data.error && typeof data.error === 'string') {
+    if (data.error && typeof data.error === 'string' && data.error !== 'Bad Request' && data.error !== 'Internal Server Error') {
       return data.error;
-    }
-    if (data.details && typeof data.details === 'object') {
-      const firstDetail = Object.values(data.details)[0];
-      if (firstDetail) return String(firstDetail);
     }
   }
 
@@ -57,13 +61,17 @@ export function messageFromError(error) {
     return 'Access denied. You do not have permission to perform this action.';
   }
   if (error.response.status === 404) {
-    return 'Requested resource not found.';
+    return data?.message || 'Requested resource not found.';
+  }
+  if (error.response.status === 409) {
+    return data?.message || 'Conflict: Record already exists or state is invalid.';
   }
   if (error.response.status >= 500) {
-    return 'Internal server error. Please try again later.';
+    return data?.message || 'Internal server error. Please try again later.';
   }
 
-  return 'Operation failed. Please try again.';
+  return 'Operation failed. Please check input values.';
 }
+
 
 export default api;

@@ -19,8 +19,8 @@ import java.util.List;
 @Service
 public class GiftCardService {
 
-        private final GiftCardRepository giftCardRepository;
-        private final GiftCardRedemptionRepository giftCardRedemptionRepository;
+    private final GiftCardRepository giftCardRepository;
+    private final GiftCardRedemptionRepository giftCardRedemptionRepository;
     private final UserRepository userRepository;
 
     public GiftCardService(
@@ -33,8 +33,8 @@ public class GiftCardService {
         this.userRepository = userRepository;
     }
 
-        @Transactional
-        public GiftCardResponse create(
+    @Transactional
+    public GiftCardResponse create(
             GiftCardRequest request,
             String adminEmail) {
 
@@ -77,13 +77,15 @@ public class GiftCardService {
                 .stream()
                 .filter(GiftCard::isActive)
                 .filter(card ->
-                        card.getExpiryDate().isAfter(today))
+                        !card.getExpiryDate().isBefore(today))
                 .filter(card ->
                         card.getBalance() > 0)
                 .map(GiftCardResponse::from)
                 .toList();
     }
 
+
+    // DEACTIVATE GIFT CARD
     public void deactivate(Long id) {
 
         GiftCard giftCard = giftCardRepository.findById(id)
@@ -92,6 +94,19 @@ public class GiftCardService {
                                 "Gift card not found"));
 
         giftCard.setActive(false);
+
+        giftCardRepository.save(giftCard);
+    }
+
+    // ACTIVATE GIFT CARD
+    public void activate(Long id) {
+
+        GiftCard giftCard = giftCardRepository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Gift card not found"));
+
+        giftCard.setActive(true);
 
         giftCardRepository.save(giftCard);
     }
@@ -129,7 +144,9 @@ public class GiftCardService {
         );
 
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"));
 
         giftCardRedemptionRepository.save(
                 new GiftCardRedemption(
@@ -143,9 +160,13 @@ public class GiftCardService {
                 giftCardRepository.save(giftCard));
     }
 
-    public List<GiftCardRedemptionResponse> myRedemptionHistory(String customerEmail) {
+    public List<GiftCardRedemptionResponse> myRedemptionHistory(
+            String customerEmail) {
+
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"));
 
         return giftCardRedemptionRepository
                 .findByUserIdOrderByRedeemedAtDesc(customer.getId())
@@ -155,7 +176,9 @@ public class GiftCardService {
     }
 
     public List<GiftCardRedemptionResponse> allRedemptions() {
-        return giftCardRedemptionRepository.findAllByOrderByRedeemedAtDesc()
+
+        return giftCardRedemptionRepository
+                .findAllByOrderByRedeemedAtDesc()
                 .stream()
                 .map(GiftCardRedemptionResponse::from)
                 .toList();

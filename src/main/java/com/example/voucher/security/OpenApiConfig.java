@@ -20,10 +20,11 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Secure Voucher System API")
+                        .title("Gift Card and Voucher Management System API")
                         .version("1.0")
-                        .description("Secure Voucher Management API"))
+                        .description("Gift Card and Voucher Management System REST API documentation"))
                 .components(new Components()
+
                         .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)

@@ -27,6 +27,9 @@ public class GiftCardRedemption {
     @Column(nullable = false)
     private LocalDateTime redeemedAt;
 
+    @Column(nullable = false, length = 10)
+    private String currency = "USD";
+
     protected GiftCardRedemption() {
     }
 
@@ -36,6 +39,7 @@ public class GiftCardRedemption {
         this.amount = amount;
         this.remainingBalance = remainingBalance;
         this.redeemedAt = redeemedAt;
+        this.currency = giftCard.getCurrency();
     }
 
     public Long getId() { return id; }
@@ -44,4 +48,6 @@ public class GiftCardRedemption {
     public Double getAmount() { return amount; }
     public Double getRemainingBalance() { return remainingBalance; }
     public LocalDateTime getRedeemedAt() { return redeemedAt; }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
 }

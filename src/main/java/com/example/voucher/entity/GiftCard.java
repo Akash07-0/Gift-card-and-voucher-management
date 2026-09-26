@@ -23,12 +23,20 @@ public class GiftCard {
     @Column(nullable = false)
     private LocalDate expiryDate;
 
+    @Column(nullable = false, length = 10)
+    private String currency = "USD";
+
+    // ACTIVE / INACTIVE STATUS
     @Column(nullable = false)
     private boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "partner_brand_id")
+    private PartnerBrand partnerBrand;
 
     public GiftCard() {
     }
@@ -73,6 +81,14 @@ public class GiftCard {
         this.expiryDate = expiryDate;
     }
 
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -87,5 +103,13 @@ public class GiftCard {
 
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public PartnerBrand getPartnerBrand() {
+        return partnerBrand;
+    }
+
+    public void setPartnerBrand(PartnerBrand partnerBrand) {
+        this.partnerBrand = partnerBrand;
     }
 }

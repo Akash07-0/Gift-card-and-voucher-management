@@ -30,6 +30,9 @@ public class Redemption {
     @Column(nullable = false)
     private String status;
 
+    @Column(nullable = false, length = 10)
+    private String currency = "INR";
+
     public Redemption() {}
 
     public Redemption(User user, Voucher voucher, LocalDateTime redeemedAt, String status) {
@@ -37,6 +40,7 @@ public class Redemption {
         this.voucher = voucher;
         this.redeemedAt = redeemedAt;
         this.status = status;
+        this.currency = voucher.getCurrency();
     }
 
     public Long getId() { return id; }
@@ -44,10 +48,12 @@ public class Redemption {
     public Voucher getVoucher() { return voucher; }
     public LocalDateTime getRedeemedAt() { return redeemedAt; }
     public String getStatus() { return status; }
+    public String getCurrency() { return currency; }
 
     public void setId(Long id) { this.id = id; }
     public void setUser(User user) { this.user = user; }
     public void setVoucher(Voucher voucher) { this.voucher = voucher; }
     public void setRedeemedAt(LocalDateTime redeemedAt) { this.redeemedAt = redeemedAt; }
     public void setStatus(String status) { this.status = status; }
+    public void setCurrency(String currency) { this.currency = currency; }
 }

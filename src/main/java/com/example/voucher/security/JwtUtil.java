@@ -44,6 +44,26 @@ public class JwtUtil {
             .parseSignedClaims(token);
     }
 
+    public String generateQrToken(Long customerId, String voucherCode) {
+        Date now = new Date();
+        return Jwts.builder()
+            .subject(voucherCode)
+            .claim("customerId", customerId)
+            .claim("type", "QR_REDEMPTION")
+            .issuedAt(now)
+            .expiration(new Date(now.getTime() + 1000 * 60 * 15)) // 15 mins expiry
+            .signWith(key, Jwts.SIG.HS256)
+            .compact();
+    }
+
+    public Claims decodeQrToken(String token) {
+        Claims claims = parse(token).getPayload();
+        if (!"QR_REDEMPTION".equals(claims.get("type"))) {
+            throw new IllegalArgumentException("Invalid token type");
+        }
+        return claims;
+    }
+
     public boolean isValid(String token) {
         try {
             parse(token);

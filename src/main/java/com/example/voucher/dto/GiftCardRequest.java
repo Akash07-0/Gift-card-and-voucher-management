@@ -9,16 +9,18 @@ import java.time.LocalDate;
 
 public record GiftCardRequest(
 
-        @NotBlank
+        @NotBlank(message = "Gift card code is required")
         String code,
 
-        @NotNull
-        @Positive
+        @NotNull(message = "Amount is required")
+        @Positive(message = "Amount must be greater than 0")
         Double amount,
 
-        @NotNull
-        @Future
-        LocalDate expiryDate
+        @NotNull(message = "Expiry date is required")
+        @Future(message = "Expiry date must be in the future")
+        LocalDate expiryDate,
+
+        String currency
 
 ) {
-}
+}

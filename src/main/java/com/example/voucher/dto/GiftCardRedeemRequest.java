@@ -6,12 +6,12 @@ import jakarta.validation.constraints.Positive;
 
 public record GiftCardRedeemRequest(
 
-        @NotBlank
+        @NotBlank(message = "Gift card code is required")
         String code,
 
-        @NotNull
-        @Positive
+        @NotNull(message = "Redeem amount is required")
+        @Positive(message = "Redeem amount must be greater than 0")
         Double amount
 
 ) {
-}
+}
