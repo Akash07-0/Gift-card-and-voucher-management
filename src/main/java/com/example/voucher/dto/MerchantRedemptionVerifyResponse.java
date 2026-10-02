@@ -21,8 +21,24 @@ public class MerchantRedemptionVerifyResponse {
     private VoucherScope scope;
     private String status;
     private boolean otpRequired;
+    private String type;
+    private Double balance;
+    private String currency;
+    private String brandName;
 
     // Getters and Setters
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    
+    public Double getBalance() { return balance; }
+    public void setBalance(Double balance) { this.balance = balance; }
+    
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+    
+    public String getBrandName() { return brandName; }
+    public void setBrandName(String brandName) { this.brandName = brandName; }
+
     public Long getVoucherId() { return voucherId; }
     public void setVoucherId(Long voucherId) { this.voucherId = voucherId; }
 

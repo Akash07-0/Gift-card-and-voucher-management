@@ -19,9 +19,18 @@ import java.util.List;
 public class GiftCardController {
 
     private final GiftCardService giftCardService;
+    private final com.example.voucher.security.JwtUtil jwtUtil;
+    private final com.example.voucher.repository.UserRepository userRepository;
+    private final com.example.voucher.repository.GiftCardRepository giftCardRepository;
 
-    public GiftCardController(GiftCardService giftCardService) {
+    public GiftCardController(GiftCardService giftCardService, 
+                              com.example.voucher.security.JwtUtil jwtUtil, 
+                              com.example.voucher.repository.UserRepository userRepository,
+                              com.example.voucher.repository.GiftCardRepository giftCardRepository) {
         this.giftCardService = giftCardService;
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+        this.giftCardRepository = giftCardRepository;
     }
 
     @PostMapping
@@ -56,18 +65,36 @@ public class GiftCardController {
         );
     }
 
-    @PostMapping("/redeem")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<GiftCardResponse> redeem(
-            @Valid @RequestBody GiftCardRedeemRequest request,
-            Authentication authentication) {
+    @PatchMapping("/{id}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GiftCardResponse> assign(
+            @PathVariable Long id,
+            @Valid @RequestBody com.example.voucher.dto.AssignCustomerRequest request) {
 
         return ResponseEntity.ok(
-                giftCardService.redeem(
-                        request,
-                        authentication.getName()
-                )
+                giftCardService.assign(id, request.getCustomerId())
         );
+    }
+
+    @GetMapping("/{code}/qr")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<java.util.Map<String, String>> generateQrToken(
+            @PathVariable String code,
+            Authentication authentication) {
+
+        com.example.voucher.entity.User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                
+        com.example.voucher.entity.GiftCard giftCard = giftCardRepository.findByCode(code)
+                .orElseThrow(() -> new IllegalArgumentException("Gift card not found"));
+                
+        if (giftCard.getOwner() == null || !giftCard.getOwner().getId().equals(user.getId())) {
+             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized");
+        }
+
+        String token = jwtUtil.generateQrToken(user.getId(), "GC_" + code);
+        
+        return ResponseEntity.ok(java.util.Map.of("qrToken", token));
     }
 
     @GetMapping("/my-history")

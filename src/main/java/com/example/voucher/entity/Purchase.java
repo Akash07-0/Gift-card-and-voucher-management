@@ -35,6 +35,12 @@ public class Purchase {
     @JoinColumn(name = "issued_voucher_id")
     private Voucher issuedVoucher;
 
+    @Column(name = "reward_generated")
+    private boolean rewardGenerated = false;
+
+    @Column(name = "status")
+    private String status = "COMPLETED";
+
     public Purchase() {}
 
     // Getters and Setters
@@ -61,4 +67,10 @@ public class Purchase {
 
     public Voucher getIssuedVoucher() { return issuedVoucher; }
     public void setIssuedVoucher(Voucher issuedVoucher) { this.issuedVoucher = issuedVoucher; }
+
+    public boolean isRewardGenerated() { return rewardGenerated; }
+    public void setRewardGenerated(boolean rewardGenerated) { this.rewardGenerated = rewardGenerated; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

@@ -87,9 +87,15 @@ public class PurchaseService {
                     reward.setBalance(rule.getRewardAmount());
                     reward.setCurrency(rule.getCurrency());
                     reward.setExpiryDate(java.time.LocalDate.now().plusMonths(6));
-                    reward.setCreatedBy(purchase.getCustomer()); // Issue to customer
+                    reward.setOwner(purchase.getCustomer()); // Issue to customer
+                    reward.setCreatedBy(purchase.getShop().getMerchant()); // Merchant created the rule
                     reward.setPartnerBrand(rule.getRewardBrand());
+                    reward.setPurchase(purchase);
+                    reward.setRewardRule(rule);
                     giftCardRepository.save(reward);
+                    
+                    purchase.setRewardGenerated(true);
+                    purchaseRepository.save(purchase);
                 }
                 break; // Only apply one rule for simplicity
             }
@@ -139,13 +145,11 @@ public class PurchaseService {
         }
         
         // Find if any reward was generated for this purchase
-        // Since we don't have a direct link from Purchase to GiftCard currently, we can just say:
-        // A reward might have been generated if rules matched. For display in response, we can fetch active rules.
-        List<RewardRule> rules = rewardRuleRepository.findByShopIdAndActiveTrue(purchase.getShop().getId());
-        for (RewardRule rule : rules) {
-            if (purchase.getAmount() >= rule.getMinimumPurchaseAmount()) {
-                response.setRewardGenerated(rule.getCurrency() + " " + rule.getRewardAmount() + " " + (rule.getRewardBrand() != null ? rule.getRewardBrand().getBrandName() : "") + " Gift Card");
-                break;
+        if (purchase.isRewardGenerated()) {
+            List<GiftCard> generatedRewards = giftCardRepository.findByPurchaseId(purchase.getId());
+            if (!generatedRewards.isEmpty()) {
+                GiftCard reward = generatedRewards.get(0);
+                response.setRewardGenerated(reward.getCurrency() + " " + reward.getAmount() + " " + (reward.getPartnerBrand() != null ? reward.getPartnerBrand().getBrandName() : "") + " Gift Card");
             }
         }
         

@@ -82,7 +82,7 @@ public class GiftCardService {
                         !card.getExpiryDate().isBefore(today))
                 .filter(card ->
                         card.getBalance() > 0)
-                .filter(card -> isAdmin || (card.getCreatedBy() != null && card.getCreatedBy().getId().equals(requester.getId())))
+                .filter(card -> isAdmin || (card.getOwner() != null && card.getOwner().getId().equals(requester.getId())))
                 .map(GiftCardResponse::from)
                 .toList();
     }
@@ -115,56 +115,23 @@ public class GiftCardService {
     }
 
     @Transactional
-    public GiftCardResponse redeem(
-            GiftCardRedeemRequest request,
-            String customerEmail) {
-
-        GiftCard giftCard = giftCardRepository
-                .findByCodeForUpdate(request.code())
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Gift card not found"));
-
-        if (!giftCard.isActive()) {
-            throw new IllegalStateException(
-                    "Gift card is inactive");
+    public GiftCardResponse assign(Long giftCardId, Long customerId) {
+        GiftCard giftCard = giftCardRepository.findById(giftCardId)
+                .orElseThrow(() -> new IllegalArgumentException("Gift card not found"));
+        
+        if (giftCard.getOwner() != null) {
+            throw new IllegalStateException("Gift card is already assigned to a customer");
         }
 
-        if (giftCard.getExpiryDate()
-                .isBefore(LocalDate.now())) {
+        User customer = userRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
 
-            throw new IllegalStateException(
-                    "Gift card expired");
+        if (customer.getRole() != com.example.voucher.entity.Role.CUSTOMER) {
+            throw new IllegalArgumentException("Can only assign to a CUSTOMER");
         }
 
-        if (request.amount() > giftCard.getBalance()) {
-            throw new IllegalStateException(
-                    "Insufficient gift card balance");
-        }
-
-        giftCard.setBalance(
-                giftCard.getBalance() - request.amount()
-        );
-
-        User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "User not found"));
-
-        if (giftCard.getCreatedBy() == null || !giftCard.getCreatedBy().getId().equals(customer.getId())) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Unauthorized gift card access");
-        }
-
-        giftCardRedemptionRepository.save(
-                new GiftCardRedemption(
-                        giftCard,
-                        customer,
-                        request.amount(),
-                        giftCard.getBalance(),
-                        java.time.LocalDateTime.now()));
-
-        return GiftCardResponse.from(
-                giftCardRepository.save(giftCard));
+        giftCard.setOwner(customer);
+        return GiftCardResponse.from(giftCardRepository.save(giftCard));
     }
 
     public List<GiftCardRedemptionResponse> myRedemptionHistory(

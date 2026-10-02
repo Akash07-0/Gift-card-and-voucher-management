@@ -36,8 +36,20 @@ public class GiftCard {
     private User createdBy;
 
     @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
+    @ManyToOne
     @JoinColumn(name = "partner_brand_id")
     private PartnerBrand partnerBrand;
+
+    @ManyToOne
+    @JoinColumn(name = "purchase_id")
+    private Purchase purchase;
+
+    @ManyToOne
+    @JoinColumn(name = "reward_rule_id")
+    private RewardRule rewardRule;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -123,5 +135,29 @@ public class GiftCard {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    public Purchase getPurchase() {
+        return purchase;
+    }
+
+    public void setPurchase(Purchase purchase) {
+        this.purchase = purchase;
+    }
+
+    public RewardRule getRewardRule() {
+        return rewardRule;
+    }
+
+    public void setRewardRule(RewardRule rewardRule) {
+        this.rewardRule = rewardRule;
     }
 }

@@ -23,4 +23,10 @@ public interface GiftCardRepository extends JpaRepository<GiftCard, Long> {
     Optional<GiftCard> findByCodeForUpdate(String code);
 
     List<GiftCard> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<GiftCard> findByPurchaseId(Long purchaseId);
+
+    List<GiftCard> findByOwnerId(Long ownerId);
+
+    List<GiftCard> findByCreatedById(Long createdById);
 }
