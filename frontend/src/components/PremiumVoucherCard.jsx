@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDiscount } from '../utils/currency';
 
 const PremiumVoucherCard = ({ voucher, onAction, actionLabel }) => {
     if (!voucher) return null;
@@ -37,7 +38,7 @@ const PremiumVoucherCard = ({ voucher, onAction, actionLabel }) => {
 
             <div className="py-6 text-center">
                 <div className="text-4xl font-extrabold sm:text-5xl">
-                    ₹{voucher.discount} OFF
+                    {formatDiscount(voucher.discount, voucher.discountType, voucher.currency)} OFF
                 </div>
                 <div className="mt-2 text-xl font-mono text-indigo-200">
                     {voucher.voucherCode || voucher.code}

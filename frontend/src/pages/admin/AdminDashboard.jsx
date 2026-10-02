@@ -1,23 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import api, { messageFromError } from '../../services/api';
 import StatCard from '../../components/StatCard';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-export const CURRENCIES = [
-  { code: 'INR', symbol: '₹', label: 'INR (₹)' },
-  { code: 'USD', symbol: '$', label: 'USD ($)' },
-  { code: 'EUR', symbol: '€', label: 'EUR (€)' },
-  { code: 'GBP', symbol: '£', label: 'GBP (£)' },
-  { code: 'AED', symbol: 'د.إ', label: 'AED (د.إ)' },
-  { code: 'SGD', symbol: 'S$', label: 'SGD (S$)' },
-  { code: 'AUD', symbol: 'A$', label: 'AUD (A$)' }
-];
-
-export function formatCurrency(amount, currencyCode = 'INR') {
-  if (amount == null) return '-';
-  const currency = CURRENCIES.find(c => c.code === (currencyCode || 'INR'));
-  const symbol = currency ? currency.symbol : currencyCode;
-  return `${symbol}${amount}`;
-}
+import { CURRENCIES, formatCurrency, formatDiscount } from '../../utils/currency';
 
 export function formatDateTime(timestamp) {
   if (!timestamp) return '-';
@@ -38,13 +24,26 @@ const emptyCard = { code: '', amount: '', expiryDate: '', currency: 'INR' };
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [dateRange, setDateRange] = useState('ALL');
   const [stats, setStats] = useState({
     totalVouchers: 0,
     activeVouchers: 0,
     totalGiftCards: 0,
     activeGiftCards: 0,
     totalRedemptions: 0,
-    totalCustomers: 0
+    totalCustomers: 0,
+    totalPurchases: 0,
+    totalRewardsIssued: 0,
+    totalRewardsRedeemed: 0,
+    totalDiscountValue: 0,
+    activePartnerBrands: 0,
+    voucherActivityOverTime: [],
+    redemptionActivityOverTime: [],
+    purchaseActivityOverTime: [],
+    rewardIssuanceOverTime: [],
+    rewardRedemptionOverTime: [],
+    voucherStatusDistribution: {},
+    giftCardStatusDistribution: {}
   });
 
   const [vouchers, setVouchers] = useState([]);
@@ -53,6 +52,7 @@ export default function AdminDashboard() {
   const [giftCardRedemptions, setGiftCardRedemptions] = useState([]);
   const [users, setUsers] = useState([]);
   const [partnerBrands, setPartnerBrands] = useState([]);
+  const [purchases, setPurchases] = useState([]);
 
   const [voucherForm, setVoucherForm] = useState(emptyVoucher);
   const [cardForm, setCardForm] = useState(emptyCard);
@@ -86,17 +86,44 @@ export default function AdminDashboard() {
     return d.toISOString().split('T')[0];
   }, []);
 
+  const getDateParams = useCallback(() => {
+    if (dateRange === 'ALL') return '';
+    const end = new Date();
+    const start = new Date();
+    if (dateRange === 'TODAY') { start.setHours(0,0,0,0); }
+    else if (dateRange === 'LAST_7') { start.setDate(end.getDate() - 7); }
+    else if (dateRange === 'LAST_30') { start.setDate(end.getDate() - 30); }
+    else if (dateRange === 'LAST_90') { start.setDate(end.getDate() - 90); }
+    else if (dateRange === 'THIS_YEAR') { start.setMonth(0); start.setDate(1); }
+    return `?startDate=${start.toISOString()}&endDate=${end.toISOString()}`;
+  }, [dateRange]);
+
+  const loadStatsOnly = useCallback(async () => {
+    try {
+      const statsRes = await api.get('/admin/stats' + getDateParams());
+      if (statsRes.data) {
+        setStats(statsRes.data);
+      }
+    } catch (err) {
+      console.error('Failed to load stats', err);
+    }
+  }, [getDateParams]);
+
+  useEffect(() => {
+    loadStatsOnly();
+  }, [loadStatsOnly]);
+
   async function loadData() {
     setLoading(true);
     try {
-      const [statsRes, vouchersRes, cardsRes, vRedeemRes, gRedeemRes, usersRes, brandsRes] = await Promise.allSettled([
-        api.get('/admin/stats'),
+      const [vouchersRes, cardsRes, vRedeemRes, gRedeemRes, usersRes, brandsRes, purchasesRes] = await Promise.allSettled([
         api.get('/vouchers'),
         api.get('/gift-cards'),
         api.get('/redemptions'),
         api.get('/gift-cards/redemptions'),
         api.get('/admin/users'),
-        api.get('/admin/partner-brands')
+        api.get('/admin/partner-brands'),
+        api.get('/admin/purchases')
       ]);
 
       if (vouchersRes.status === 'fulfilled') setVouchers(vouchersRes.value.data || []);
@@ -105,26 +132,9 @@ export default function AdminDashboard() {
       if (gRedeemRes.status === 'fulfilled') setGiftCardRedemptions(gRedeemRes.value.data || []);
       if (usersRes.status === 'fulfilled') setUsers(usersRes.value.data || []);
       if (brandsRes.status === 'fulfilled') setPartnerBrands(brandsRes.value.data || []);
+      if (purchasesRes.status === 'fulfilled') setPurchases(purchasesRes.value.data || []);
 
-      if (statsRes.status === 'fulfilled' && statsRes.value.data) {
-        setStats(statsRes.value.data);
-      } else {
-        // Fallback computation
-        const vList = vouchersRes.status === 'fulfilled' ? vouchersRes.value.data : [];
-        const cList = cardsRes.status === 'fulfilled' ? cardsRes.value.data : [];
-        const vrList = vRedeemRes.status === 'fulfilled' ? vRedeemRes.value.data : [];
-        const grList = gRedeemRes.status === 'fulfilled' ? gRedeemRes.value.data : [];
-        const uList = usersRes.status === 'fulfilled' ? usersRes.value.data : [];
-
-        setStats({
-          totalVouchers: vList.length,
-          activeVouchers: vList.filter((v) => v.active).length,
-          totalGiftCards: cList.length,
-          activeGiftCards: cList.filter((c) => c.active).length,
-          totalRedemptions: vrList.length + grList.length,
-          totalCustomers: uList.filter((u) => u.role === 'CUSTOMER').length
-        });
-      }
+      await loadStatsOnly();
     } catch (err) {
       setNotice({ text: messageFromError(err), type: 'error' });
     } finally {
@@ -407,7 +417,14 @@ export default function AdminDashboard() {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📊 Overview
+          📊 Operations
+        </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          📈 Advanced Analytics
         </button>
         <button
           type="button"
@@ -444,9 +461,190 @@ export default function AdminDashboard() {
         >
           🤝 Partner Brands ({partnerBrands.length})
         </button>
+        <button
+          type="button"
+          className={`tab-btn ${activeTab === 'purchases' ? 'active' : ''}`}
+          onClick={() => setActiveTab('purchases')}
+        >
+          💰 All Purchases ({purchases.length})
+        </button>
       </nav>
 
-      {/* TAB 1: OVERVIEW */}
+      {/* TAB 0: ADVANCED ANALYTICS */}
+      {activeTab === 'analytics' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ margin: 0 }}>Analytics Dashboard</h2>
+            <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="filter-select">
+              <option value="ALL">All Time</option>
+              <option value="TODAY">Today</option>
+              <option value="LAST_7">Last 7 Days</option>
+              <option value="LAST_30">Last 30 Days</option>
+              <option value="LAST_90">Last 3 Months</option>
+              <option value="THIS_YEAR">This Year</option>
+            </select>
+          </div>
+          
+          <div className="stats-grid">
+            <StatCard label="Total Purchases" value={stats.totalPurchases} subtext="Total transactions" tone="green" />
+            <StatCard label="Total Redemptions" value={stats.totalRedemptions} subtext="Vouchers + Gift Cards" tone="blue" />
+            <StatCard label="Total Discount Value" value={formatCurrency(stats.totalDiscountValue)} subtext="Value given" tone="gold" />
+            <StatCard label="Rewards Issued" value={stats.totalRewardsIssued} subtext="Gift Cards Generated" tone="purple" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+              <h3>Activity Over Time</h3>
+              <div style={{ height: '300px' }}>
+                {stats.purchaseActivityOverTime?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats.purchaseActivityOverTime}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="value" stroke="#8884d8" name="Purchases" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#999', paddingTop: '100px' }}>No data available</div>
+                )}
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+              <h3>Voucher Activity</h3>
+              <div style={{ height: '300px' }}>
+                {stats.voucherActivityOverTime?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats.voucherActivityOverTime}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="value" fill="#82ca9d" name="Vouchers Created" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#999', paddingTop: '100px' }}>No data available</div>
+                )}
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+              <h3>Reward Issuance Over Time</h3>
+              <div style={{ height: '300px' }}>
+                {stats.rewardIssuanceOverTime?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats.rewardIssuanceOverTime}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="value" stroke="#ffc658" name="Rewards Issued" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#999', paddingTop: '100px' }}>No data available</div>
+                )}
+              </div>
+            </div>
+            
+            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+              <h3>Status Distribution (Active vs Inactive)</h3>
+              <div style={{ height: '300px', display: 'flex', justifyContent: 'space-around' }}>
+                <ResponsiveContainer width="45%" height="100%">
+                  <PieChart>
+                    <Pie data={[
+                      { name: 'Active', value: stats.activeVouchers },
+                      { name: 'Inactive', value: stats.inactiveVouchers }
+                    ]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                      <Cell fill="#4caf50" />
+                      <Cell fill="#f44336" />
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ResponsiveContainer width="45%" height="100%">
+                  <PieChart>
+                    <Pie data={[
+                      { name: 'Active', value: stats.activeGiftCards },
+                      { name: 'Inactive', value: stats.inactiveGiftCards }
+                    ]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                      <Cell fill="#ffb300" />
+                      <Cell fill="#f44336" />
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* TAB FOR PURCHASES */}
+      {activeTab === 'purchases' && (
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <h2 className="panel-title">All Purchases</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                System-wide record of in-store purchases across all merchants.
+              </p>
+            </div>
+          </div>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Shop</th>
+                  <th>Order Ref</th>
+                  <th>Amount</th>
+                  <th>Reward Generated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchases.map((p) => (
+                  <tr key={p.id}>
+                    <td>{new Date(p.purchaseDate).toLocaleDateString()}</td>
+                    <td>{p.customerName || 'Customer'}</td>
+                    <td>{p.shopName || 'Shop'}</td>
+                    <td><span className="code-cell">{p.orderId}</span></td>
+                    <td style={{ fontWeight: '600' }}>{formatCurrency(p.amount, p.currency)}</td>
+                    <td>
+                      {p.rewardGenerated ? (
+                        <span className="badge badge-active">{p.rewardGenerated}</span>
+                      ) : (
+                        <span style={{ color: '#999', fontSize: '0.9em' }}>None</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {purchases.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="empty-state">
+                      <div className="empty-state-icon">💰</div>
+                      <h3>No purchases yet</h3>
+                      <p>In-store purchases will appear here.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 1: OVERVIEW (OPERATIONS) */}
       {activeTab === 'overview' && (
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
@@ -1020,7 +1218,7 @@ export default function AdminDashboard() {
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label>Discount Amount ($)</label>
+                <label>Discount Amount</label>
                 <input
                   type="number"
                   step="0.01"

@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 public class DataInitializer {
@@ -49,6 +50,24 @@ public class DataInitializer {
                 userRepository.save(customer);
 
                 System.out.println("Default customer created.");
+            }
+        };
+    }
+
+    @Bean
+    CommandLineRunner migrateCurrency(JdbcTemplate jdbcTemplate) {
+        return args -> {
+            try {
+                jdbcTemplate.update("UPDATE voucher SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE gift_card SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE redemption SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE gift_card_redemption SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE purchase SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE reward_rule SET currency = 'INR' WHERE currency = 'USD'");
+                jdbcTemplate.update("UPDATE partner_brand SET currency = 'INR' WHERE currency = 'USD'");
+                System.out.println("Currency migration complete (USD -> INR).");
+            } catch (Exception e) {
+                System.out.println("Currency migration skipped or failed: " + e.getMessage());
             }
         };
     }

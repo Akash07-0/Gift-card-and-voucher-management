@@ -48,10 +48,11 @@ public class GiftCardController {
 
     @GetMapping("/available")
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
-    public ResponseEntity<List<GiftCardResponse>> getAvailable() {
+    public ResponseEntity<List<GiftCardResponse>> getAvailable(
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                giftCardService.getAvailable()
+                giftCardService.getAvailable(authentication.getName())
         );
     }
 

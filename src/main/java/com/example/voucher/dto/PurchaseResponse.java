@@ -11,6 +11,9 @@ public class PurchaseResponse {
     private String currency;
     private LocalDateTime purchaseDate;
     private Long issuedVoucherId;
+    private String rewardGenerated;
+    private String customerName;
+    private String shopName;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -36,4 +39,13 @@ public class PurchaseResponse {
 
     public Long getIssuedVoucherId() { return issuedVoucherId; }
     public void setIssuedVoucherId(Long issuedVoucherId) { this.issuedVoucherId = issuedVoucherId; }
+
+    public String getRewardGenerated() { return rewardGenerated; }
+    public void setRewardGenerated(String rewardGenerated) { this.rewardGenerated = rewardGenerated; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
 }

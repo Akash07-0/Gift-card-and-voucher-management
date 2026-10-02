@@ -45,8 +45,7 @@ public class MerchantShopController {
 
     @PostMapping("/purchases")
     @PreAuthorize("hasRole('MERCHANT')")
-    public ResponseEntity<PurchaseResponse> createPurchase(@RequestParam String customerEmail, @RequestBody PurchaseRequest request) {
-        // In a real flow, this links the purchase to the shop. Shop is taken from the request or the current user.
-        return ResponseEntity.ok(purchaseService.createPurchase(customerEmail, request));
+    public ResponseEntity<PurchaseResponse> createPurchase(Authentication authentication, @RequestBody PurchaseRequest request) {
+        return ResponseEntity.ok(purchaseService.createPurchase(authentication.getName(), request));
     }
 }

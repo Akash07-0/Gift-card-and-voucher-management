@@ -28,7 +28,7 @@ public class GiftCardRedemption {
     private LocalDateTime redeemedAt;
 
     @Column(nullable = false, length = 10)
-    private String currency = "USD";
+    private String currency = "INR";
 
     protected GiftCardRedemption() {
     }

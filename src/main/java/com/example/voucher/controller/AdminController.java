@@ -31,6 +31,7 @@ public class AdminController {
     private final UserRepository userRepository;
 
     private final VoucherService voucherService;
+    private final com.example.voucher.service.AdminAnalyticsService adminAnalyticsService;
 
     public AdminController(
             VoucherRepository voucherRepository,
@@ -38,7 +39,8 @@ public class AdminController {
             RedemptionRepository redemptionRepository,
             GiftCardRedemptionRepository giftCardRedemptionRepository,
             UserRepository userRepository,
-            VoucherService voucherService
+            VoucherService voucherService,
+            com.example.voucher.service.AdminAnalyticsService adminAnalyticsService
     ) {
         this.voucherRepository = voucherRepository;
         this.giftCardRepository = giftCardRepository;
@@ -46,27 +48,15 @@ public class AdminController {
         this.giftCardRedemptionRepository = giftCardRedemptionRepository;
         this.userRepository = userRepository;
         this.voucherService = voucherService;
+        this.adminAnalyticsService = adminAnalyticsService;
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<AdminStatsResponse> getStats() {
-        long totalVouchers = voucherRepository.count();
-        long activeVouchers = voucherRepository.countByActiveTrue();
-        long totalGiftCards = giftCardRepository.count();
-        long activeGiftCards = giftCardRepository.countByActiveTrue();
-        long voucherRedemptions = redemptionRepository.count();
-        long giftCardRedemptions = giftCardRedemptionRepository.count();
-        long totalRedemptions = voucherRedemptions + giftCardRedemptions;
-        long totalCustomers = userRepository.countByRole(Role.CUSTOMER);
-
-        return ResponseEntity.ok(new AdminStatsResponse(
-                totalVouchers,
-                activeVouchers,
-                totalGiftCards,
-                activeGiftCards,
-                totalRedemptions,
-                totalCustomers
-        ));
+    public ResponseEntity<AdminStatsResponse> getStats(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate
+    ) {
+        return ResponseEntity.ok(adminAnalyticsService.getStats(startDate, endDate));
     }
 
     @GetMapping("/users")
@@ -76,6 +66,12 @@ public class AdminController {
                 .map(UserResponse::from)
                 .toList();
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/purchases")
+    public ResponseEntity<List<com.example.voucher.dto.PurchaseResponse>> getAllPurchases(
+            @org.springframework.beans.factory.annotation.Autowired com.example.voucher.service.PurchaseService purchaseService) {
+        return ResponseEntity.ok(purchaseService.getAllPurchases());
     }
 
     @PutMapping("/vouchers/{id}/activate")

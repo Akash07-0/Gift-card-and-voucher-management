@@ -21,7 +21,11 @@ public class MerchantAnalyticsController {
 
     @GetMapping
     @PreAuthorize("hasRole('MERCHANT')")
-    public ResponseEntity<MerchantAnalyticsResponse> getAnalytics(Authentication authentication) {
-        return ResponseEntity.ok(merchantAnalyticsService.getAnalytics(authentication.getName()));
+    public ResponseEntity<MerchantAnalyticsResponse> getAnalytics(
+            Authentication authentication,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate
+    ) {
+        return ResponseEntity.ok(merchantAnalyticsService.getAnalytics(authentication.getName(), startDate, endDate));
     }
 }

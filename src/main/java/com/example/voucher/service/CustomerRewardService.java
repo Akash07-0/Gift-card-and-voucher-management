@@ -7,6 +7,8 @@ import com.example.voucher.repository.UserRepository;
 import com.example.voucher.service.integration.DemoIntegrationProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,7 @@ public class CustomerRewardService {
         User customer = userRepository.findByEmail(customerEmail).orElseThrow();
         GiftCard gc = giftCardRepository.findById(rewardId).orElseThrow(() -> new IllegalArgumentException("Reward not found"));
         if (gc.getCreatedBy() == null || !gc.getCreatedBy().getId().equals(customer.getId())) {
-            throw new IllegalArgumentException("Unauthorized reward access");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized reward access");
         }
         return gc;
     }

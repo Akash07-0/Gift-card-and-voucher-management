@@ -69,9 +69,11 @@ public class GiftCardService {
                 .toList();
     }
 
-    public List<GiftCardResponse> getAvailable() {
+    public List<GiftCardResponse> getAvailable(String requesterEmail) {
 
         LocalDate today = LocalDate.now();
+        User requester = userRepository.findByEmail(requesterEmail).orElseThrow();
+        boolean isAdmin = requester.getRole() == com.example.voucher.entity.Role.ADMIN;
 
         return giftCardRepository.findAll()
                 .stream()
@@ -80,6 +82,7 @@ public class GiftCardService {
                         !card.getExpiryDate().isBefore(today))
                 .filter(card ->
                         card.getBalance() > 0)
+                .filter(card -> isAdmin || (card.getCreatedBy() != null && card.getCreatedBy().getId().equals(requester.getId())))
                 .map(GiftCardResponse::from)
                 .toList();
     }
@@ -147,6 +150,10 @@ public class GiftCardService {
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "User not found"));
+
+        if (giftCard.getCreatedBy() == null || !giftCard.getCreatedBy().getId().equals(customer.getId())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Unauthorized gift card access");
+        }
 
         giftCardRedemptionRepository.save(
                 new GiftCardRedemption(

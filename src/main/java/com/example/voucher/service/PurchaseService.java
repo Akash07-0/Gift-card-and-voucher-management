@@ -41,15 +41,28 @@ public class PurchaseService {
     }
 
     @Transactional
-    public PurchaseResponse createPurchase(String customerEmail, PurchaseRequest request) {
-        User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+    public PurchaseResponse createPurchase(String merchantEmail, PurchaseRequest request) {
+        User merchant = userRepository.findByEmail(merchantEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
 
-        Shop shop = shopRepository.findById(request.getShopId())
+        Shop shop = shopRepository.findByMerchantId(merchant.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
 
+        User customer = userRepository.findByEmail(request.getCustomerEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+
+        if (request.getOrderReference() != null && !request.getOrderReference().trim().isEmpty()) {
+            if (purchaseRepository.existsByOrderId(request.getOrderReference().trim())) {
+                throw new IllegalArgumentException("Reward already generated for this purchase.");
+            }
+        }
+
         Purchase purchase = new Purchase();
-        purchase.setOrderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        if (request.getOrderReference() != null && !request.getOrderReference().trim().isEmpty()) {
+            purchase.setOrderId(request.getOrderReference().trim());
+        } else {
+            purchase.setOrderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        }
         purchase.setCustomer(customer);
         purchase.setShop(shop);
         purchase.setAmount(request.getAmount());
@@ -67,15 +80,17 @@ public class PurchaseService {
         List<RewardRule> rules = rewardRuleRepository.findByShopIdAndActiveTrue(purchase.getShop().getId());
         for (RewardRule rule : rules) {
             if (purchase.getAmount() >= rule.getMinimumPurchaseAmount()) {
-                GiftCard reward = new GiftCard();
-                reward.setCode("RWD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-                reward.setAmount(rule.getRewardAmount());
-                reward.setBalance(rule.getRewardAmount());
-                reward.setCurrency(rule.getCurrency());
-                reward.setExpiryDate(java.time.LocalDate.now().plusMonths(6));
-                reward.setCreatedBy(purchase.getCustomer()); // Issue to customer
-                reward.setPartnerBrand(rule.getRewardBrand());
-                giftCardRepository.save(reward);
+                if ("GIFT_CARD".equals(rule.getRewardType())) {
+                    GiftCard reward = new GiftCard();
+                    reward.setCode("RWD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+                    reward.setAmount(rule.getRewardAmount());
+                    reward.setBalance(rule.getRewardAmount());
+                    reward.setCurrency(rule.getCurrency());
+                    reward.setExpiryDate(java.time.LocalDate.now().plusMonths(6));
+                    reward.setCreatedBy(purchase.getCustomer()); // Issue to customer
+                    reward.setPartnerBrand(rule.getRewardBrand());
+                    giftCardRepository.save(reward);
+                }
                 break; // Only apply one rule for simplicity
             }
         }
@@ -102,18 +117,38 @@ public class PurchaseService {
                 .collect(Collectors.toList());
     }
 
+    public List<PurchaseResponse> getAllPurchases() {
+        return purchaseRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     private PurchaseResponse mapToResponse(Purchase purchase) {
         PurchaseResponse response = new PurchaseResponse();
         response.setId(purchase.getId());
         response.setOrderId(purchase.getOrderId());
         response.setCustomerId(purchase.getCustomer().getId());
+        response.setCustomerName(purchase.getCustomer().getName());
         response.setShopId(purchase.getShop().getId());
+        response.setShopName(purchase.getShop().getName());
         response.setAmount(purchase.getAmount());
         response.setCurrency(purchase.getCurrency());
         response.setPurchaseDate(purchase.getPurchaseDate());
         if (purchase.getIssuedVoucher() != null) {
             response.setIssuedVoucherId(purchase.getIssuedVoucher().getId());
         }
+        
+        // Find if any reward was generated for this purchase
+        // Since we don't have a direct link from Purchase to GiftCard currently, we can just say:
+        // A reward might have been generated if rules matched. For display in response, we can fetch active rules.
+        List<RewardRule> rules = rewardRuleRepository.findByShopIdAndActiveTrue(purchase.getShop().getId());
+        for (RewardRule rule : rules) {
+            if (purchase.getAmount() >= rule.getMinimumPurchaseAmount()) {
+                response.setRewardGenerated(rule.getCurrency() + " " + rule.getRewardAmount() + " " + (rule.getRewardBrand() != null ? rule.getRewardBrand().getBrandName() : "") + " Gift Card");
+                break;
+            }
+        }
+        
         return response;
     }
 }

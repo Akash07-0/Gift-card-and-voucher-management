@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import PremiumVoucherCard from '../../components/PremiumVoucherCard';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatCurrency, formatDiscount } from '../../utils/currency';
 
 // -- INLINE SUB-COMPONENTS FOR MERCHANT TABS -- //
 
@@ -69,6 +71,116 @@ const ShopProfile = () => {
           {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </form>
+    </div>
+  );
+};
+
+const RecordPurchase = () => {
+  const [form, setForm] = useState({ customerEmail: '', amount: '', orderReference: '' });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage({ text: '', type: '' });
+    try {
+      const res = await api.post('/merchant/purchases', {
+        ...form,
+        amount: Number(form.amount)
+      });
+      let successMsg = `Purchase recorded successfully.`;
+      if (res.data.rewardGenerated) {
+         successMsg += ` Reward generated: ${res.data.rewardGenerated} for ${res.data.customerName}.`;
+      }
+      setMessage({ text: successMsg, type: 'success' });
+      setForm({ customerEmail: '', amount: '', orderReference: '' });
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || err.message, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="card" style={{ padding: '24px', background: '#fff', borderRadius: '8px', maxWidth: '600px' }}>
+      <h2 style={{ marginTop: 0 }}>Record Customer Purchase</h2>
+      {message.text && <div style={{ marginBottom: '16px', padding: '10px', borderRadius: '4px', background: message.type === 'error' ? '#f5e4e4' : '#e5efdf', color: message.type === 'error' ? '#a83e34' : '#19352e' }}>{message.text}</div>}
+      
+      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <input className="input" placeholder="Customer Email" value={form.customerEmail} onChange={e => setForm({...form, customerEmail: e.target.value})} required type="email" />
+        <input className="input" placeholder="Purchase Amount" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required type="number" min="1" step="0.01" />
+        <input className="input" placeholder="Order Reference (Optional)" value={form.orderReference} onChange={e => setForm({...form, orderReference: e.target.value})} />
+        
+        <button type="submit" className="button primary" disabled={saving}>
+          {saving ? 'Recording...' : 'Record Purchase'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+const MyShopPurchases = () => {
+  const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPurchases();
+  }, []);
+
+  const loadPurchases = async () => {
+    try {
+      const res = await api.get('/merchant/purchases');
+      setPurchases(res.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading purchases...</div>;
+
+  return (
+    <div className="card" style={{ padding: '24px', background: '#fff', borderRadius: '8px' }}>
+      <h2 style={{ marginTop: 0 }}>My Shop Purchases</h2>
+      <p style={{ color: '#666', marginBottom: '20px' }}>Recent customer transactions recorded by your shop.</p>
+      
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid #eee' }}>
+              <th style={{ padding: '12px' }}>Date</th>
+              <th style={{ padding: '12px' }}>Customer</th>
+              <th style={{ padding: '12px' }}>Amount</th>
+              <th style={{ padding: '12px' }}>Order Ref</th>
+              <th style={{ padding: '12px' }}>Reward Generated</th>
+            </tr>
+          </thead>
+          <tbody>
+            {purchases.map(p => (
+              <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '12px' }}>{new Date(p.purchaseDate).toLocaleDateString()}</td>
+                <td style={{ padding: '12px' }}>{p.customerName || 'Customer'}</td>
+                <td style={{ padding: '12px', fontWeight: 'bold' }}>{formatCurrency(p.amount, p.currency)}</td>
+                <td style={{ padding: '12px' }}><span style={{ fontFamily: 'monospace', background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>{p.orderId}</span></td>
+                <td style={{ padding: '12px' }}>
+                  {p.rewardGenerated ? (
+                    <span style={{ color: '#1f6b52', background: '#e5efdf', padding: '4px 8px', borderRadius: '12px', fontSize: '0.85em' }}>{p.rewardGenerated}</span>
+                  ) : (
+                    <span style={{ color: '#999', fontSize: '0.85em' }}>None</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {purchases.length === 0 && (
+              <tr>
+                <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#999' }}>No purchases recorded yet.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -172,8 +284,8 @@ const CreatePromotion = ({ onBack }) => {
           <input className="input" placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} required />
           
           <div style={{ display: 'flex', gap: '16px' }}>
-            <input type="number" className="input" placeholder="Discount Amount (₹)" value={form.discount || ''} onChange={e => setForm({...form, discount: Number(e.target.value)})} required min="1" />
-            <input type="number" className="input" placeholder="Min Purchase (₹)" value={form.minPurchaseAmount || ''} onChange={e => setForm({...form, minPurchaseAmount: Number(e.target.value)})} min="0" />
+            <input type="number" className="input" placeholder="Discount Amount" value={form.discount || ''} onChange={e => setForm({...form, discount: Number(e.target.value)})} required min="1" />
+            <input type="number" className="input" placeholder="Min Purchase" value={form.minPurchaseAmount || ''} onChange={e => setForm({...form, minPurchaseAmount: Number(e.target.value)})} min="0" />
           </div>
 
           <div style={{ display: 'flex', gap: '16px' }}>
@@ -256,10 +368,10 @@ const RewardRules = ({ onCreateNew }) => {
           <tbody>
             {rules.map(r => (
               <tr key={r.id} style={{ borderBottom: '1px solid #f9f9f9' }}>
-                <td style={{ padding: '8px' }}>{r.currency} {r.minimumPurchaseAmount}</td>
+                <td style={{ padding: '8px' }}>{formatCurrency(r.minimumPurchaseAmount, r.currency)}</td>
                 <td>{r.rewardBrand?.brandName}</td>
                 <td>{r.rewardType}</td>
-                <td>{r.currency} {r.rewardAmount}</td>
+                <td>{formatCurrency(r.rewardAmount, r.currency)}</td>
                 <td>
                   <span style={{ color: r.active ? 'green' : 'red' }}>{r.active ? 'Active' : 'Inactive'}</span>
                 </td>
@@ -348,20 +460,25 @@ const VerifyAndRedeem = () => {
   const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
+    let scanner = null;
     if (scanning) {
-      const scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner = new Html5QrcodeScanner('qr-reader', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
       scanner.render(
         (decodedText) => {
           scanner.clear();
           setScanning(false);
           handleQrScanSuccess(decodedText);
         },
-        () => {}
+        (err) => {
+          // gracefully ignore/log scanner errors
+        }
       );
-      return () => {
-        scanner.clear().catch(() => {});
-      };
     }
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(() => {});
+      }
+    };
   }, [scanning]);
 
   const handleQrScanSuccess = async (qrToken) => {
@@ -372,8 +489,7 @@ const VerifyAndRedeem = () => {
       setVerification(res.data);
       setCode(res.data.voucherCode || '');
       setStep(2);
-      // Backend automatically finds customerId internally during OTP request if needed, or we just pass a placeholder
-      await api.post(`/merchant/redemptions/request-otp?voucherCode=${res.data.voucherCode}&customerId=1`);
+      await api.post(`/merchant/redemptions/request-otp?voucherCode=${res.data.voucherCode}&customerId=${res.data.customerId}`);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -387,18 +503,14 @@ const VerifyAndRedeem = () => {
     setLoading(true);
     setError('');
     try {
-      // Assuming customerId is resolved on backend via email in real flow, or we pass ID. 
-      // For this simplified UI, we send mock customerId 1, or prompt for exact ID if known.
       const res = await api.post('/merchant/redemptions/verify', {
         voucherCode: code,
-        customerId: 1, // hardcoded for demo frontend to avoid looking up user IDs manually
         purchaseAmount: Number(purchaseAmount)
       });
       setVerification(res.data);
       setStep(2);
       
-      // Auto-trigger OTP request
-      await api.post(`/merchant/redemptions/request-otp?voucherCode=${code}&customerId=1`);
+      await api.post(`/merchant/redemptions/request-otp?voucherCode=${code}&customerId=${res.data.customerId}`);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -414,7 +526,7 @@ const VerifyAndRedeem = () => {
     try {
       const res = await api.post('/merchant/redemptions/verify-otp', {
         voucherCode: code,
-        customerId: 1,
+        customerId: verification.customerId,
         purchaseAmount: Number(purchaseAmount),
         otp: otp
       });
@@ -445,9 +557,9 @@ const VerifyAndRedeem = () => {
           {scanning && <div id="qr-reader" style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}></div>}
 
           {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
-          <div style={{ textAlign: 'center', color: '#666' }}>OR Enter Manually</div>
-          <input className="input" placeholder="Voucher Code" value={code} onChange={e => setCode(e.target.value.toUpperCase())} required={!scanning} disabled={scanning} />
-          <input type="number" className="input" placeholder="Total Purchase Amount (₹)" value={purchaseAmount} onChange={e => setPurchaseAmount(e.target.value)} required min="1" disabled={scanning} />
+          <div style={{ textAlign: 'center', color: '#666', margin: '8px 0' }}>OR Enter Reference Manually</div>
+          <input className="input" placeholder="Secure Reference Token / Code" value={code} onChange={e => setCode(e.target.value)} required={!scanning} disabled={scanning} />
+          <input type="number" className="input" placeholder="Total Purchase Amount" value={purchaseAmount} onChange={e => setPurchaseAmount(e.target.value)} required min="1" disabled={scanning} />
           <button type="submit" className="button primary" disabled={loading || scanning}>
             {loading ? 'Verifying...' : 'Verify'}
           </button>
@@ -458,9 +570,14 @@ const VerifyAndRedeem = () => {
         <form onSubmit={handleOtpSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <h2 style={{ marginTop: 0, textAlign: 'center', color: '#1f6b52' }}>Pre-Verification Success</h2>
           <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '8px', fontSize: '14px' }}>
-            <p><strong>Voucher:</strong> {verification.voucherCode}</p>
-            <p><strong>Discount:</strong> ₹{verification.discount}</p>
-            <p><strong>Min Purchase:</strong> ₹{verification.minimumPurchaseAmount}</p>
+            <p><strong>Validation Result:</strong> <span className="badge badge-active">{verification.status}</span></p>
+            <p><strong>Voucher:</strong> {verification.promotionName || verification.voucherCode}</p>
+            <p><strong>Customer:</strong> {verification.customerName}</p>
+            <p><strong>Shop:</strong> {verification.shopName}</p>
+            <p><strong>Discount:</strong> {formatDiscount(verification.discount, verification.discountType, verification.currency)}</p>
+            <p><strong>Min Purchase:</strong> {formatCurrency(verification.minimumPurchaseAmount, verification.currency)}</p>
+            <p><strong>Expiry:</strong> {verification.expiryDate}</p>
+            <p><strong>Usage:</strong> {verification.currentUsage} / {verification.maximumUsage}</p>
             <p style={{ color: 'green', marginTop: '10px' }}>✓ OTP sent securely to customer.</p>
           </div>
           {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
@@ -481,9 +598,9 @@ const VerifyAndRedeem = () => {
             <p><strong>Voucher:</strong> {receipt.voucherCode}</p>
             <p><strong>Customer:</strong> {receipt.customerName}</p>
             <hr style={{ margin: '10px 0', border: 'none', borderTop: '1px dashed #ccc' }} />
-            <p><strong>Original Amount:</strong> ₹{receipt.originalAmount}</p>
-            <p style={{ color: 'red' }}><strong>Discount Applied:</strong> -₹{receipt.discountApplied}</p>
-            <p style={{ fontSize: '18px', fontWeight: 'bold' }}><strong>Final Payable:</strong> ₹{receipt.finalAmount}</p>
+            <p><strong>Original Amount:</strong> {formatCurrency(receipt.originalAmount, receipt.currency)}</p>
+            <p style={{ color: 'red' }}><strong>Discount Applied:</strong> -{formatCurrency(receipt.discountApplied, receipt.currency)}</p>
+            <p style={{ fontSize: '18px', fontWeight: 'bold' }}><strong>Final Payable:</strong> {formatCurrency(receipt.finalAmount, receipt.currency)}</p>
           </div>
           <button onClick={reset} className="button primary">Verify Another Voucher</button>
         </div>
@@ -500,14 +617,28 @@ export default function MerchantDashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [dateRange, setDateRange] = useState('ALL');
+
+  const getDateParams = () => {
+    if (dateRange === 'ALL') return '';
+    const end = new Date();
+    const start = new Date();
+    if (dateRange === 'TODAY') { start.setHours(0,0,0,0); }
+    else if (dateRange === 'LAST_7') { start.setDate(end.getDate() - 7); }
+    else if (dateRange === 'LAST_30') { start.setDate(end.getDate() - 30); }
+    else if (dateRange === 'LAST_90') { start.setDate(end.getDate() - 90); }
+    else if (dateRange === 'THIS_YEAR') { start.setMonth(0); start.setDate(1); }
+    return `?startDate=${start.toISOString()}&endDate=${end.toISOString()}`;
+  };
+
   useEffect(() => {
     if (activeTab === 'analytics') loadAnalytics();
-  }, [activeTab]);
+  }, [activeTab, dateRange]);
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/merchant/analytics');
+      const res = await api.get('/merchant/analytics' + getDateParams());
       setAnalytics(res.data);
     } catch (error) {
       console.error('Failed to load analytics', error);
@@ -522,35 +653,91 @@ export default function MerchantDashboard() {
         if (loading) return <div>Loading analytics...</div>;
         if (!analytics) return <div>Failed to load data</div>;
         return (
-          <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Total Vouchers</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.totalVouchers}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-10px' }}>
+              <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                <option value="ALL">All Time</option>
+                <option value="TODAY">Today</option>
+                <option value="LAST_7">Last 7 Days</option>
+                <option value="LAST_30">Last 30 Days</option>
+                <option value="LAST_90">Last 3 Months</option>
+                <option value="THIS_YEAR">This Year</option>
+              </select>
             </div>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Active Vouchers</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.activeVouchers}</p>
+            <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Total Vouchers</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.totalVouchers}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Active Customers</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.activeCustomers}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Redeemed (Uses)</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.redeemedVouchers}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Total Purchases</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.totalPurchases}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Purchase Value</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>₹{analytics.totalPurchaseValue}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Discount Given</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>₹{analytics.totalDiscountGiven}</p>
+              </div>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Rewards Issued</h3>
+                <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.totalRewardsIssued}</p>
+              </div>
             </div>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Redeemed (Uses)</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.redeemedVouchers}</p>
-            </div>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Expired</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.expiredVouchers}</p>
-            </div>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Total Purchases</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{analytics.totalPurchases}</p>
-            </div>
-            <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', color: '#666' }}>Discount Given</h3>
-              <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>₹{analytics.totalDiscountGiven}</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+                <h3>Purchases Over Time</h3>
+                <div style={{ height: '250px' }}>
+                  {analytics.purchasesOverTime?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={analytics.purchasesOverTime}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="value" stroke="#8884d8" name="Purchases" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : <div style={{ textAlign: 'center', paddingTop: '80px', color: '#999' }}>No data</div>}
+                </div>
+              </div>
+              
+              <div className="card" style={{ padding: '20px', background: '#fff', borderRadius: '8px' }}>
+                <h3>Rewards Issued Over Time</h3>
+                <div style={{ height: '250px' }}>
+                  {analytics.rewardsIssuedOverTime?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.rewardsIssuedOverTime}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#ffc658" name="Rewards Issued" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : <div style={{ textAlign: 'center', paddingTop: '80px', color: '#999' }}>No data</div>}
+                </div>
+              </div>
             </div>
           </div>
         );
       case 'shop':
         return <ShopProfile />;
+      case 'purchases':
+        return <MyShopPurchases />;
+      case 'record_purchase':
+        return <RecordPurchase />;
       case 'promotions':
         return <MyPromotions onCreateNew={() => setActiveTab('create_promotion')} />;
       case 'create_promotion':
@@ -579,7 +766,7 @@ export default function MerchantDashboard() {
         <div style={{ flex: '1 1 250px', background: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', alignSelf: 'flex-start' }}>
           <h2 style={{ fontSize: '18px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Merchant Menu</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {['analytics', 'shop', 'promotions', 'rules', 'verify'].map(tab => (
+            {['analytics', 'shop', 'purchases', 'record_purchase', 'promotions', 'rules', 'verify'].map(tab => (
               <li key={tab}>
                 <button 
                   onClick={() => setActiveTab(tab)}

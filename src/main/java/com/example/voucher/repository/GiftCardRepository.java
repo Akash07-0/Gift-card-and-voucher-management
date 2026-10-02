@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import jakarta.persistence.LockModeType;
 
 import java.util.Optional;
+import java.util.List;
+import java.time.LocalDateTime;
 
 public interface GiftCardRepository extends JpaRepository<GiftCard, Long> {
 
@@ -19,4 +21,6 @@ public interface GiftCardRepository extends JpaRepository<GiftCard, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select card from GiftCard card where card.code = :code")
     Optional<GiftCard> findByCodeForUpdate(String code);
+
+    List<GiftCard> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

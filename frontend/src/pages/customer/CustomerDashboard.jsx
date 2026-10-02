@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import api, { messageFromError } from '../../services/api';
 import StatCard from '../../components/StatCard';
 import { QRCodeSVG } from 'qrcode.react';
+import { formatCurrency, formatDiscount } from '../../utils/currency';
 
 export default function CustomerDashboard() {
   const auth = useAuth();
@@ -13,6 +14,7 @@ export default function CustomerDashboard() {
   const [voucherHistory, setVoucherHistory] = useState([]);
   const [giftHistory, setGiftHistory] = useState([]);
   const [rewards, setRewards] = useState([]);
+  const [purchases, setPurchases] = useState([]);
 
   // Search & Filter States
   const [voucherSearch, setVoucherSearch] = useState('');
@@ -28,6 +30,7 @@ export default function CustomerDashboard() {
   // QR Modal
   const [qrToken, setQrToken] = useState(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrVoucher, setQrVoucher] = useState(null);
   const [generatingQr, setGeneratingQr] = useState(false);
 
   // Status and Alerts
@@ -37,12 +40,13 @@ export default function CustomerDashboard() {
   async function loadData() {
     setLoading(true);
     try {
-      const [vRes, cRes, vhRes, ghRes, rRes] = await Promise.allSettled([
+      const [vRes, cRes, vhRes, ghRes, rRes, pRes] = await Promise.allSettled([
         api.get('/vouchers/available'),
         api.get('/gift-cards/available'),
         api.get('/redemptions/my-history'),
         api.get('/gift-cards/my-history'),
-        api.get('/customer/rewards')
+        api.get('/customer/rewards'),
+        api.get('/customer/purchases')
       ]);
 
       if (vRes.status === 'fulfilled') setVouchers(vRes.value.data || []);
@@ -50,6 +54,7 @@ export default function CustomerDashboard() {
       if (vhRes.status === 'fulfilled') setVoucherHistory(vhRes.value.data || []);
       if (ghRes.status === 'fulfilled') setGiftHistory(ghRes.value.data || []);
       if (rRes.status === 'fulfilled') setRewards(rRes.value.data || []);
+      if (pRes.status === 'fulfilled') setPurchases(pRes.value.data || []);
     } catch (err) {
       setNotice({ text: messageFromError(err), type: 'error' });
     } finally {
@@ -66,7 +71,7 @@ export default function CustomerDashboard() {
     try {
       const { data } = await api.post('/redemptions', { code });
       setNotice({
-        text: `Success! Voucher ${code} redeemed for $${data.discount} discount!`,
+        text: `Success! Voucher ${code} redeemed for ${formatCurrency(data.discount, data.currency)} discount!`,
         type: 'success'
       });
       loadData();
@@ -75,11 +80,12 @@ export default function CustomerDashboard() {
     }
   }
 
-  async function handleShowQr(code) {
+  async function handleShowQr(voucher) {
     setGeneratingQr(true);
     try {
-      const { data } = await api.get(`/vouchers/${code}/qr`);
+      const { data } = await api.get(`/vouchers/${voucher.code}/qr`);
       setQrToken(data.qrToken);
+      setQrVoucher(voucher);
       setQrModalOpen(true);
     } catch (err) {
       setNotice({ text: messageFromError(err), type: 'error' });
@@ -120,7 +126,7 @@ export default function CustomerDashboard() {
     }
     if (amountNum > selectedCard.balance) {
       setNotice({
-        text: `Redeem amount ($${amountNum}) exceeds remaining balance ($${selectedCard.balance})`,
+        text: `Redeem amount (${formatCurrency(amountNum, selectedCard.currency)}) exceeds remaining balance (${formatCurrency(selectedCard.balance, selectedCard.currency)})`,
         type: 'error'
       });
       return;
@@ -134,7 +140,7 @@ export default function CustomerDashboard() {
       });
       setSelectedCard(null);
       setNotice({
-        text: `Success! Redeemed $${amountNum} from gift card ${selectedCard.code}. Remaining balance: $${data.balance}`,
+        text: `Success! Redeemed ${formatCurrency(amountNum, selectedCard.currency)} from gift card ${selectedCard.code}. Remaining balance: ${formatCurrency(data.balance, data.currency)}`,
         type: 'success'
       });
       loadData();
@@ -166,7 +172,7 @@ export default function CustomerDashboard() {
         id: `v-${h.id}`,
         type: 'VOUCHER',
         code: h.voucherCode,
-        amount: `$${h.discount}`,
+        amount: formatDiscount(h.discount, h.discountType, h.currency),
         balance: '-',
         date: h.redeemedAt,
         status: h.status || 'SUCCESS'
@@ -175,8 +181,8 @@ export default function CustomerDashboard() {
         id: `g-${h.id}`,
         type: 'GIFT_CARD',
         code: h.giftCardCode,
-        amount: `$${h.amount}`,
-        balance: `$${h.remainingBalance}`,
+        amount: formatCurrency(h.amount, h.currency),
+        balance: formatCurrency(h.remainingBalance, h.currency),
         date: h.redeemedAt,
         status: 'SUCCESS'
       }))
@@ -308,7 +314,7 @@ export default function CustomerDashboard() {
                     <span className="code-cell">{v.code}</span>
                     <span className="badge badge-active">Active</span>
                   </div>
-                  <div className="offer-amount">${v.discount} OFF</div>
+                  <div className="offer-amount">{formatDiscount(v.discount, v.discountType, v.currency)} OFF</div>
                   <p className="offer-desc">{v.description}</p>
                 </div>
 
@@ -322,7 +328,7 @@ export default function CustomerDashboard() {
                       type="button"
                       className="btn btn-outline"
                       style={{ flex: 1 }}
-                      onClick={() => handleShowQr(v.code)}
+                      onClick={() => handleShowQr(v)}
                       disabled={generatingQr}
                     >
                       Show QR
@@ -380,8 +386,8 @@ export default function CustomerDashboard() {
                     <span className="code-cell">{c.code}</span>
                     <span className="badge badge-giftcard">Stored Value</span>
                   </div>
-                  <div className="offer-amount">${c.balance}</div>
-                  <p className="offer-desc">Available balance out of original ${c.amount}</p>
+                  <div className="offer-amount">{formatCurrency(c.balance, c.currency)}</div>
+                  <p className="offer-desc">Available balance out of original {formatCurrency(c.amount, c.currency)}</p>
                 </div>
 
                 <div>
@@ -546,6 +552,59 @@ export default function CustomerDashboard() {
         </div>
       )}
 
+      {/* TAB 5: MY PURCHASES */}
+      {activeTab === 'purchases' && (
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <h2 className="panel-title">My Purchases</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                A record of your in-store purchases and associated rewards.
+              </p>
+            </div>
+          </div>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Shop</th>
+                  <th>Order Ref</th>
+                  <th>Amount</th>
+                  <th>Reward Generated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchases.map((p) => (
+                  <tr key={p.id}>
+                    <td>{new Date(p.purchaseDate).toLocaleDateString()}</td>
+                    <td>{p.shopName || 'Shop'}</td>
+                    <td><span className="code-cell">{p.orderId}</span></td>
+                    <td style={{ fontWeight: '600' }}>{formatCurrency(p.amount, p.currency)}</td>
+                    <td>
+                      {p.rewardGenerated ? (
+                        <span className="badge badge-active">{p.rewardGenerated}</span>
+                      ) : (
+                        <span style={{ color: '#999', fontSize: '0.9em' }}>None</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {purchases.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="empty-state">
+                      <div className="empty-state-icon">💰</div>
+                      <h3>No purchases yet</h3>
+                      <p>Your in-store purchases will appear here.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* REDEEM GIFT CARD MODAL */}
       {selectedCard && (
         <div className="modal-overlay" onClick={() => setSelectedCard(null)}>
@@ -565,7 +624,7 @@ export default function CustomerDashboard() {
               <div style={{ background: 'var(--gold-light)', padding: '14px', borderRadius: 'var(--radius-sm)', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--gold)' }}>Current Balance:</span>
-                  <strong style={{ fontSize: '1.2rem', color: 'var(--gold)' }}>${selectedCard.balance}</strong>
+                  <strong style={{ fontSize: '1.2rem', color: 'var(--gold)' }}>{formatCurrency(selectedCard.balance, selectedCard.currency)}</strong>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   Expires on: {selectedCard.expiryDate}
@@ -573,7 +632,7 @@ export default function CustomerDashboard() {
               </div>
 
               <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label>Amount to Redeem ($)</label>
+                <label>Amount to Redeem</label>
                 <input
                   type="number"
                   step="0.01"
@@ -585,7 +644,7 @@ export default function CustomerDashboard() {
                   required
                 />
                 <span className="form-help">
-                  Enter any amount up to ${selectedCard.balance}
+                  Enter any amount up to {formatCurrency(selectedCard.balance, selectedCard.currency)}
                 </span>
               </div>
 
@@ -613,7 +672,7 @@ export default function CustomerDashboard() {
       {/* QR MODAL */}
       {qrModalOpen && (
         <div className="modal-overlay" onClick={() => setQrModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', maxWidth: '400px' }}>
             <div className="modal-header">
               <h3 className="modal-title">In-Store QR Redemption</h3>
               <button
@@ -626,8 +685,23 @@ export default function CustomerDashboard() {
             </div>
             <div style={{ padding: '24px' }}>
               <p style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Show this QR code to the merchant to redeem your voucher.</p>
+              
+              {qrVoucher && (
+                <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left', fontSize: '14px' }}>
+                  <h4 style={{ margin: '0 0 8px 0', color: '#1f6b52' }}>{qrVoucher.description || 'Promotional Offer'}</h4>
+                  <p style={{ margin: '4px 0' }}><strong>Shop:</strong> {qrVoucher.shopName || 'Platform Wide'}</p>
+                  <p style={{ margin: '4px 0' }}><strong>Discount:</strong> {qrVoucher.discountType === 'PERCENTAGE' ? `${qrVoucher.discount}% OFF` : `${qrVoucher.currency || '₹'} ${qrVoucher.discount} OFF`}</p>
+                  <p style={{ margin: '4px 0' }}><strong>Expires:</strong> {qrVoucher.expiryDate}</p>
+                  <p style={{ margin: '4px 0' }}>
+                    <strong>Status:</strong> <span className="badge badge-active">Available</span>
+                  </p>
+                </div>
+              )}
+
               {qrToken ? (
-                <QRCodeSVG value={qrToken} size={256} />
+                <div style={{ background: '#fff', padding: '16px', display: 'inline-block', borderRadius: '12px', border: '1px solid #eaeaea' }}>
+                  <QRCodeSVG value={qrToken} size={200} />
+                </div>
               ) : (
                 <p>Failed to generate QR.</p>
               )}
@@ -638,7 +712,7 @@ export default function CustomerDashboard() {
                 className="btn btn-primary"
                 onClick={() => setQrModalOpen(false)}
               >
-                Close
+                Done
               </button>
             </div>
           </div>

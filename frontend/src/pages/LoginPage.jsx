@@ -37,7 +37,6 @@ export default function LoginPage() {
     <main className="auth-container">
       <div className="auth-hero">
         <div>
-          <span className="eyebrow" style={{ color: '#b9dcce' }}>CAPSTONE PROJECT</span>
           <div className="brand" style={{ color: '#ffffff', margin: '20px 0 0' }}>
             <span className="brand-mark" style={{ background: '#ffffff', color: '#124e3f' }}>GC</span>
             <span>Gift Card and Voucher Management System</span>

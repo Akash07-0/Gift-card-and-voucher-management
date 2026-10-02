@@ -2,6 +2,7 @@ package com.example.voucher.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "gift_cards")
@@ -24,7 +25,7 @@ public class GiftCard {
     private LocalDate expiryDate;
 
     @Column(nullable = false, length = 10)
-    private String currency = "USD";
+    private String currency = "INR";
 
     // ACTIVE / INACTIVE STATUS
     @Column(nullable = false)
@@ -37,6 +38,9 @@ public class GiftCard {
     @ManyToOne
     @JoinColumn(name = "partner_brand_id")
     private PartnerBrand partnerBrand;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public GiftCard() {
     }
@@ -111,5 +115,13 @@ public class GiftCard {
 
     public void setPartnerBrand(PartnerBrand partnerBrand) {
         this.partnerBrand = partnerBrand;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

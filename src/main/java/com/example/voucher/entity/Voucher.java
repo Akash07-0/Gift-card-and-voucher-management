@@ -2,6 +2,7 @@ package com.example.voucher.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vouchers")
@@ -62,6 +63,9 @@ public class Voucher {
     @Column(name = "discount_type", nullable = false)
     private DiscountType discountType = DiscountType.FIXED_AMOUNT;
 
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
 
     public Voucher() {}
 
@@ -82,6 +86,7 @@ public class Voucher {
     public String getPromotionName() { return promotionName; }
     public String getCurrency() { return currency; }
     public DiscountType getDiscountType() { return discountType; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
     public void setCode(String code) { this.code = code; }
@@ -100,4 +105,5 @@ public class Voucher {
     public void setPromotionName(String promotionName) { this.promotionName = promotionName; }
     public void setCurrency(String currency) { this.currency = currency; }
     public void setDiscountType(DiscountType discountType) { this.discountType = discountType; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

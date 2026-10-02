@@ -1,13 +1,18 @@
 package com.example.voucher.dto;
 
 public class PurchaseRequest {
-    private Long shopId;
+    private String customerEmail;
     private Double amount;
     private String currency;
+    private String orderReference;
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
+
+    public String getOrderReference() { return orderReference; }
+    public void setOrderReference(String orderReference) { this.orderReference = orderReference; }
 
     // Getters and Setters
-    public Long getShopId() { return shopId; }
-    public void setShopId(Long shopId) { this.shopId = shopId; }
 
     public Double getAmount() { return amount; }
     public void setAmount(Double amount) { this.amount = amount; }
